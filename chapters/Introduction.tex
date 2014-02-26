@@ -12,4 +12,53 @@ Due to the same license it would be possible that Google integrates this solutio
  
 \section{Basics about USB}
 
-USB means universal serial bus interface is a serial bussystem to connect a computer with external devices. The first version was introduced by Intel and now the specification is done by the USB foundation. In USB there exists one USB host controller (eg. computer) which initiates the connection and comunication and multiple clients (slaves). 
+USB means universal serial bus interface is a serial bussystem to connect a computer with external devices. The first version was introduced by Intel and now the specification is done by the USB Implementers Forum (USB-IF). The USB-IF is a corporation founded by various companies which work non-profit on the USB specification. In USB there exists one USB host controller (eg. computer) which initiates the connection and comunication and multiple clients (slaves). The client only sends data when the host aks for it. The USB host ist responsible for powering the connected client, thus an external power source is only in some special cases necessary.
+
+\subsection{Client device hierarchy}
+
+A USB client can be structured in four different USB descriptors. The device, configuration, interface and endpoints.\\
+The device descriptor represents the USB device as a hole device which is connected to the USB bus. This can be for example a loud speaker with volume control buttons.\\
+The configuration descriptor represents the current state of the USB device. This can for example be standby or active.\\
+A USB Interface descriptor describes every logical device which belongs to the USB device. Often USB devices consist of multiple logical device units. For example a loud speaker is the first logical device and the control buttons to adjust the volume are the second logical device.\\
+Lastly there are the endpoint descriptors which represent unidirectional communication pipes. This is where the actual communication happens. The other descriptors are only to describe the USB device. Endpoints can be of type IN (device to host) or OUT (host to device). Additional tehre are four different types of endpoints to fit different requirements when communicating.\\
+
+\subsection{Endpoints}
+
+Every USB device has different requirements towards the underlying communication pipe. To satisfy the different needs the USB protocol offers four different types of communicaton (endpoints).\\
+Control endpoints are used to configure the device and retrieve status information. These transfers are typically very small. Every device has a control endpoint called endpoint 0 which plays an important role at insertion time.\\
+Interrupt transfers carry a small amount of data to the host everytime the host aks for it. This happens at a fixed rate resulting in a fixed and guarenteed bandwidth. These transfers are used by Human interface devices (eg. mouse, keyboard, gamepads) which need a low latency and a low paket size.\\
+Next there are bulk endpoints. These are useful when the amount of data transferred varies often and happens infrequently. The remaining bandwidth the bus provides is used. Hence there is no guarantee on bandwith or latency. However bulk transfers offer consistent data transfers, meaning that no data is lost. Typically used for printers, network or mass storage devices. Everywhere where data loss is unacceptable and no guarenteed bandwith is needed.\\
+Finally there are the isochronous transfers. They offer a guarenteed bandwith while resigning consistency. The guarenteed bandwith is mostly as fast as possible and valueable for real time transfers (eg. audio or video). Mostly these transfers are used for Webcams or Audio devices (eg. external audio cards/audio interfaces).\\
+
+\subsection{USB on the go}
+
+As already mentioned in the USB communication there is always a host (master) and a client (device). The host initates the communication and acts as a master. That means the client is not allowed to send data at every time, it can only send data when the host explicitly asks to do so! The client is only able to signal that it requires attention. Then the host must react and ask for receiving data. When connecting a smartphone or tablet to the computer the computer acts as the host and the smartphone as the client device. That means the smartphone normally acts as a client device and not as the USB host. In our constellation, however, it has obvisously to act as a host. \\
+For that reason the USB-IF developed the USB on the go (USB OTG) featur in 2001. It is part of the USB 2.0 specification. This feature allows a USB device to act as a client or either a host depending on the present situation. To use the USB OTG mode a special USB OTG adapter is needed. This is necessary for two reasons. Apriori for signalling that the smartphone should now act as a host and not as usual as a client and secondly because most smartphones and tables do not provide a normal USB port of type A. Instead they offer a mini (older devices) or micro port of type A and B. 
+
+\section{USB Mass storage class}
+
+Most USB devices are very similiar. To reduce development effort and allow OS designers offering generic drivers for a great range of different devices a lot of device types are standardized. These different types are called classes in USB. There are for example standardizations for printers, USB hubs, Audio or Video Devices, Human Interface devices and mass storage devices. We will now concentrate on the mass storage class.\\
+Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. Note that the mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device. Reading and writing in this case does not neccessarily mean reading or writing on the actual storage medium, but we will see that later on.\\
+There are several sources regarding the mass storage class. It exists the bulk-only transport mechanism which is the most popular one. All newer devices follow these standard. The there is the Control/Bulk/Interrupt (CBI) standard and the UFI Command specification, which are no longer important. In the end the are some mechanisms to allow booting from removable media. We will concentrate on the bulk-only transport short BBB.
+
+\subsection{Bulk-only Transport}
+
+Unlike the name suggests there are two control requests in the BBB specification. The first one is a reset request to make the device becomming ready for the next command. The second is used to get the maximun LUN (Get Max LUN request). This requests tells about the number of standalone logical units the mass storage device supports.\\
+Like saif before the interface class has to be set to 08h for the mass storage class. The subclass of the interface descriptor can have different values and specifies the supported protocols used to read and write data to the mass storage. Table \ref{table:subclass} gives an overview of the different protocol.
+
+\begin{table}[ht]
+\caption{Overview subclass protocols}
+\centering
+\begin{tabular}{|l|l|}
+\hline\hline
+01h & Reduced Block Coammnds (RBC) \\ \hline
+02h & SFF-8020i, MMC-2 (ATAPI) (CD/DVD drives) \\ \hline
+03h & QIC-157 (tape drives) \\ \hline
+04h & USB Floppy Interface (UFI) \\ \hline
+05h & FF-8070i (ATAPI removable rewritable media devices) \\ \hline
+06h & SCSI transparent command set \\ \hline
+\end{tabular}
+\label{table:subclass}
+\end{table}
+
+For our purpose the SCSI transparent command set is the most important one. The RBC is even not implemented in Windows, but in the Linux kernel. The other protocols refer to other types of storage media we do not want to cover.
