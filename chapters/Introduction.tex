@@ -61,4 +61,50 @@ Like saif before the interface class has to be set to 08h for the mass storage c
 \label{table:subclass}
 \end{table}
 
-For our purpose the SCSI transparent command set is the most important one. The RBC is even not implemented in Windows, but in the Linux kernel. The other protocols refer to other types of storage media we do not want to cover.
+For our purpose the SCSI transparent command set is the most important one, we will learn about it in detail in the next chapter. The RBC is not even implemented in Windows, but in the Linux kernel. The other protocols refer to other types of storage media we do not want to cover.
+
+\subsection{SCSI transparent comand set}
+
+Every SCSI command the host sends to the client is enclosed by a so called Command Block Wrapper (CBW). Sending this CBW is always the first thing when host and device are communicating. After that raw data can be transferred, depending on the command. Some commands do not need the data transfer phase. This data can either be from host to device or vice versa. In the last step the client device sends a Command Status Wrapper (CSW) to the host to inform about any failures or success.\\
+
+The CWB is always 31 bytes long including the enclosing SCSI command. The host sends it through the OUT endpoint to the device. Following table \ref{table:cbw} illustrates the CBW:
+
+\begin{table}[ht]
+\caption{Command Block Wrapper}
+\centering
+\begin{tabular}{|l|l|p{9cm}|}
+\hline\hline
+\textbf{Field Name} & \textbf{Bits} & \textbf{Description}\\ \hline
+dCBWSignature & 32 & Fixed value of 43425355h to identify the CBW. \\ \hline
+dCBWTag & 32 & Corresponds to dCSWTag in CSW. \\ \hline
+dCBWDataTransferLength & 32 & The number of bytes which will be sent by the host in the transfer phase or the number of bytes the host expects to receive in the transger phase. Depends on bmCBWFlags. \\ \hline
+bmCBWFlags & 8 & If bit 7 is set to 0 the data transfer is from host to device, if it is set to 1 from device to host. All other bits are unused. \\ \hline
+Reserved & 4 & - \\ \hline
+bCBWLUN & 4 & The LUN the command is directed to. \\ \hline
+Reserved & 3 & - \\ \hline
+bCBWCBLength & 5 & The length of the actual SCSI command located in the CBWCB field. \\ \hline
+CBWCB & 128 & The SCSI command the client shall execute. \\ \hline
+\end{tabular}
+\label{table:cbw}
+\end{table}
+
+The dCBWTag is useful to associate the CSW again with the CBW. The device uses the same value sotred in the dCBWTag in the dCSWTag of the CSW. If you have multiple CBWs sent and receive multiple CSWs then you can easily find out which CBW corresponds to which CSW.\\
+
+What data is transferred and how we will see when discussing the different SCSI commands. For now we will just igonre it and have a closer look at the CSW. The CSW is always 13 bytes.
+
+\begin{table}[ht]
+\caption{Command Status Wrapper}
+\centering
+\begin{tabular}{|l|l|p{9cm}|}
+\hline\hline
+\textbf{Field Name} & \textbf{Bits} & \textbf{Description}\\ \hline
+dCSWSignature & 32 & Fixed value of 53425355h to identify the CSW. \\ \hline
+dCSWTag & 32 & Value of dCBWTag from the sent CBW. \\ \hline
+dCSWDataResidue & 32 & This indicates the number bytes of the data phase the device has not yet processed. Should be 0 if all data has been processed. \\ \hline
+bCSWStatus & 8 & 0 if command successfully passed, 1 if there was an error and 2 on a phase error. \\ \hline
+\end{tabular}
+\label{table:csw}
+\end{table}
+
+The dCSWDataResidue holds the difference between the dCBWDataTransferLength and the number of bytes the device either processed when the host sends data or the number of bytes the device already sent to the host. Mostly all data can be transferred in one data transer phase meaning dCSWDataResidue is mostly 0. \\
+The bCSWStatus informs about the success of a SCSI command. If this field is 1, the host should issue a SCSI REQUEST SENSE command to get more information about what went wrong. More on this SCSI command later. If this value is 2 the host should perform a reset recovery. 
