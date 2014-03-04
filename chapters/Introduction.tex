@@ -17,7 +17,7 @@ Due to the same license it would be possible that Google integrates this solutio
  
 \chapter{Basics about USB}
 
-USB means universal serial bus interface is a serial bussystem to connect a computer with external devices. The first version was introduced by Intel and now the specification is done by the USB Implementers Forum (USB-IF). The USB-IF is a corporation founded by various companies which work non-profit on the USB specification. In USB there exists one USB host controller (eg. computer) which initiates the connection and comunication and multiple clients (slaves). The client only sends data when the host aks for it. The USB host ist responsible for powering the connected client, thus an external power source is only in some special cases necessary.
+USB means universal serial bus interface and is a serial bussystem to connect a computer with external devices. The first version was introduced by Intel and now the specification is done by the USB Implementers Forum (USB-IF). The USB-IF is a corporation founded by various companies which work non-profit on the USB specification. In USB there exists one USB host controller (eg. computer) which initiates the connection and comunication and multiple clients (slaves). The client only sends data when the host aks for it. The USB host ist responsible for powering the connected client, thus an external power source is only in some special cases necessary.
 
 \section{Client device hierarchy}
 
@@ -59,7 +59,236 @@ As we already know with Android 3.1 Honeycomb Google added USB features. There a
 
 \section{USB Host API}
 
+On Android there exist a few classes to enumerate, connect to and communicate with connected USB devices. Table \ref{table:host_api} gives an overview of the classes which can be found in the package \textit{android.hardware.usb}.
 
+\begin{table}[ht]
+\caption{USB host APIs \cite{android_usb_host}}
+\centering
+\begin{tabular}{|l|p{10cm}|}
+\hline\hline
+\textbf{Class} & \textbf{Description} \\ \hline
+UsbManager & Allows you to enumerate and communicate with connected USB devices. \\ \hline
+UsbDevice & Represents a connected USB device and contains methods to access its identifying information, interfaces, and endpoints. \\ \hline
+UsbInterface & Represents an interface of a USB device, which defines a set of functionality for the device. A device can have one or more interfaces on which to communicate on. \\ \hline
+UsbEndpoint & Represents an interface endpoint, which is a communication channel for this interface. An interface can have one or more endpoints, and usually has input and output endpoints for two-way communication with the device. \\ \hline
+UsbDeviceConnection & Represents a connection to the device, which transfers data on endpoints. This class allows you to send data back and forth sychronously or asynchronously. \\ \hline
+UsbRequest & Represents an asynchronous request to communicate with a device through a UsbDeviceConnection. \\ \hline
+UsbConstants & Defines USB constants that correspond to definitions in linux/usb/ch9.h of the Linux kernel. \\ \hline
+\end{tabular}
+\label{table:host_api}
+\end{table}
+
+The UsbRequest class is only needed when communicating asynchronous\footnote{We pass on asynchronous communication in our implementation and stick to the UsbDeviceConnection}. The rough procedure of getting in touch with a USB device includes following steps:
+
+\begin{enumerate}
+\item Retrieve the desired UsbDevice via the UsbManager
+\item Get the appropriate UsbInterface and UsbEndpoint
+\item Begin the communication by opening an UsbDeviceConnection via the UsbEndpoint
+\end{enumerate}
+
+To understand the following sections you should have fundamental knowledge of Android programming. Basic things\footnote{These terms should not be foreign to you: Activity, Intent, PendingIntent, IntentFiler, Broadcast, BroadcastReceiver} will not be described in detail here. If you need an introduction in Android porgramming, please refer to the offical Android developer documentation\footnote{\url{http://developer.android.com}}.
+
+\section{Enumerating devices}
+
+To enumerate through all connected USB devices you have to get the UsbManager and loop through the device list. The device list is returned by the method getDeviceList() of the UsbManager.
+
+\begin{lstlisting}[caption=Enumerating connected USB devices, label=listing:enumerate]
+UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+		
+for(UsbDevice device : usbManager.getDeviceList().values()) {
+	Log.i(TAG, "found usb device: " + device);
+}
+\end{lstlisting}
+
+Accessing the UsbInterface and the UsbInterface is also straight forward. The UsbDevice has a method to get the interface and the UsbInterface has a method to get the endpoint count on the other hand. Both classes have a method to get the interface resp. endpoint at an integer index. Listing \ref{listing:interface_endpoint} illustreates the process.
+
+\begin{lstlisting}[caption=Accessing UsbInterface and UsbEndpoint, label=listing:interface_endpoint]
+UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+		
+for(UsbDevice device : usbManager.getDeviceList().values()) {
+	Log.i(TAG, "found usb device: " + device);
+	
+	int interfaceCount = device.getInterfaceCount();
+	for(int i = 0; i < interfaceCount; i++) {
+		UsbInterface usbInterface = device.getInterface(i);
+		Log.i(TAG, "found usb interface: " + usbInterface);
+		
+		int endpointCount = usbInterface.getEndpointCount();
+		for(int j = 0; j < endpointCount; j++) {
+			UsbEndpoint endpoint = usbInterface.getEndpoint(j);
+			Log.i(TAG, "found usb endpoint: " + endpoint);
+		}
+	}
+}
+\end{lstlisting}
+
+While looping through the devices you can easily check if any device fits your needs. UsbDevice and UsbInterface have methods to get the class, subclass and the protocol.The UsbEndpoint class has methods to get the type, the direction and other attributes of the corresponding endpoint. The UsbDevice also offers methods to get the vendor and product ID of the connected device.
+
+\section{Requesting permission for communication}
+\label{section:request_permission}
+
+After discovering a suitable device Android requires the user to accept the communication between an application and the USB device first. To do that you have to explicitly request the permission to communicate with the USB device. A dialog then is shown to the user asking for permission where the user can click okay or cancel. For that the UsbManager offers a method called requestPermission which takes a UsbDevice and a PendingIntent as parameter. The PendingIntent in this case is a Broadcast which can be recevied via registering a BroadcastReceiver with a specific IntentFilter.
+
+Listing \ref{listing:permission_broadcast} shows how a BroadcastReceiver for receiving notifications about the permission can look like. First the the intent action is validated, this step is only needed if the BroadcastReceiver should receive multiple different actions. In this example this is not the case. After that the UsbDevice can be accessed via the an extra of the intent. Another extra of the intent is the state of the permission. If it is granted the extra is true and it is okay to communicate with the device.
+
+\begin{lstlisting}[caption=Permission BroadcastReceiver \cite{android_usb_host}, label=listing:permission_broadcast]
+private static final String ACTION_USB_PERMISSION =
+    "com.android.example.USB_PERMISSION";
+private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        if(ACTION_USB_PERMISSION.equals(action)) {
+            synchronized (this) {
+                UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                if(intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    if(device != null){
+                      //call method to set up device communication
+                   }
+                } 
+                else {
+                    Log.d(TAG, "permission denied for device " + device);
+                }
+            }
+        }
+    }
+};
+\end{lstlisting}
+
+The next step is to register this BroadcastReceiver that it can actually receive broadcasts from the system. This normally happens in the onCreate method of an Activity via the method registerReceiver which takes the BroadcastReceive (mUsbReceiver) and and IntentFilter as a parameter. The IntentFilter uses our ACTION\_USB\_PERMISSION string to filter out undesired actions.
+
+\begin{lstlisting}[caption=Register the BroadcastReceiver \cite{android_usb_host}, label=listing:register_broadcast]
+IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+registerReceiver(mUsbReceiver, filter);
+\end{lstlisting}
+
+The last step consists of requesting the permission with the help of the UsbManager:
+
+\begin{lstlisting}[caption=Register the BroadcastReceiver \cite{android_usb_host}, label=listing:request_permission]
+UsbDevice device;
+...
+mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+mUsbManager.requestPermission(device, mPermissionIntent);
+\end{lstlisting}
+
+\section{Communication}
+
+After succeeding all neccessary steps to set up the device, finally, communicating is possible. To do so we have to open the desired device and retrieve an UsbDeviceConnection. The class UsbDeviceConnection offers a method to claim a certain UsbInterface. After that communication is possible voa the UsbDeviceConnection. It offers methods like bulkTransfer or controlTransfer.
+
+\begin{lstlisting}[caption=Communicating with a connected device \cite{android_usb_host}, label=listing:communication]
+private Byte[] bytes
+private static int TIMEOUT = 0;
+private boolean forceClaim = true;
+...
+UsbInterface intf = device.getInterface(0);
+UsbEndpoint endpoint = intf.getEndpoint(0);
+UsbDeviceConnection connection = mUsbManager.openDevice(device); 
+connection.claimInterface(intf, forceClaim);
+connection.bulkTransfer(endpoint, bytes, bytes.length, TIMEOUT); //do in another thread
+\end{lstlisting}
+
+Listing \ref{listing:communication} above uses, for simplicity reasons, the first interface and enpoint. Normally the endpoint to communicate with should be chosen wisely by examing for example the interface class, or the vendor ID of the device. A control transfer would look like anaolgous.
+
+\section{Tearing down the communication}
+
+When the communication between the Android App and the USB device is done, the communication has to be shut down. This is done by releasing the interface and closing the connection. Listing \ref{listing:closing_communication} gives a hint about how to do that.
+
+\begin{lstlisting}[caption=Closing communication, label=listing:closing_communication]
+public void close() {
+	Log.d(TAG, "close device");
+	boolean release = deviceConnection.releaseInterface(usbInterface);
+	if(!release) {
+		Log.e(TAG, "could not release interface!");
+	}
+	deviceConnection.close();
+}
+\end{lstlisting}
+
+\section{Listening to attach and detech events}
+
+Android not only allows enumerating connected devices, an application can also register for attach and detach events of USB devices. The application then gets notified whenever a USB device is (dis)connceted to the Android device. There are two different solutions to do that. First one is via BroadcastReceiver, the second one via the AndroidManifest.xml file. The second solution has the advantage that the application gets notified even if it is not started before.
+
+\subsection{Via BroadcastReceiver}
+
+\begin{lstlisting}[caption=Attach and detach notification of USB devices via BroadcastReceivers, label=listing:attach_broadcast]
+BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction(); 
+
+      if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
+            UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            if (device != null) {
+                // call your method that sets up and initiates communication with the device
+            }
+        }
+
+      if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+            UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            if (device != null) {
+                // call your method that cleans up and closes communication with the device
+            }
+        }
+    }
+};
+\end{lstlisting}
+
+To use this BroadcastReceiver register it in your Activity or Service with the corresponding IntentFilter like this:
+
+\begin{lstlisting}[caption=Register the BroadcastReceiver with the desired actions, label=listing:attach_register]
+IntentFilter filter = new IntentFilter();
+filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+registerReceiver(mUsbReceiver, filter);
+\end{lstlisting}
+
+\subsection{Via AndroidManifest.xml}
+
+If an application wants to get notified about of an atatched USB device this can also happen in the AndroidManifest.xml. This has the advantage that the application does not have to be started before. In fact it will be started when a desired USB device is connected. The user is then asked if he wants to start the application which can handle the attached device. The next benefit is that the step of requesting described in \ref{section:request_permission} the permission is not required because the user already gave his consent by allowing the application to start.
+
+As a plus you can specify a device filter which allows your application to get notified only if an appropirate device was attached. You can specify following attributes\cite{android_usb_host}:
+
+\begin{itemize}
+\item Vendor ID
+\item Product ID
+\item Class
+\item Subclass
+\item Protocol (device or interface)
+\end{itemize}
+
+Here is an example how a device filter could look like:
+
+\lstset{language=XML}
+\begin{lstlisting}[caption=Example device filter\cite{android_usb_host}, label=listing:device_filter]
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <usb-device vendor-id="1234" product-id="5678" class="255" subclass="66" protocol="1" />
+</resources>
+\end{lstlisting}
+
+This resource file should be located at \textit{res/xml/device\_filter.xml} in the project directory\cite{android_usb_host}. This device filter can then be used in the AndroidManifest.xml, which shows Listing \ref{listing:manifest}.
+
+\begin{lstlisting}[caption=AndroidManifest.xml\cite{android_usb_host}, label=listing:manifest]
+<manifest ...>
+    <uses-feature android:name="android.hardware.usb.host" />
+    <uses-sdk android:minSdkVersion="12" />
+    ...
+    <application>
+        <activity ...>
+            ...
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
+        </activity>
+    </application>
+</manifest>
+\end{lstlisting}
+
+The intent filter for the action uses again the USB\_DEVICE\_ATTACHED string like when using a BroadcastReceiver. But note that this time no broadcast is sent, an activity is started. The minimun sdk version is set to 12 here, because on lower API levels the USB API is not available. The manifest also contains a uses-feature entry, because not all Android devices guarantee to support the USB host feature\cite{android_usb_host}.
 
 \chapter{USB Mass storage class}
 
