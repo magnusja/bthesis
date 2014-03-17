@@ -319,7 +319,7 @@ Like said before the interface class has to be set to 08h for the mass storage c
 \label{table:subclass}
 \end{table}
 
-For our purpose the SCSI transparent command set is the most important one, we will learn about it in detail in the next chapter. The RBC is not even implemented in Windows, but in the Linux kernel. The other protocols refer to other types of storage media we do not want to cover.
+For our purpose the SCSI transparent command set is the most important one, we will learn about it in detail in the next chapter. The RBC is not even implemented in Windows, but in the Linux kernel\cite{usb_ms_jan}. The other protocols refer to other types of storage media we do not want to cover.
 
 \section{SCSI transparent comand set}
 
@@ -366,4 +366,128 @@ bCSWStatus & 8 & 0 if command successfully passed, 1 if there was an error and 2
 
 The dCSWDataResidue holds the difference between the dCBWDataTransferLength and the number of bytes the device either processed when the host sends data or the number of bytes the device already sent to the host. Mostly all data can be transferred in one data transer phase meaning dCSWDataResidue is mostly 0.
 
-The bCSWStatus informs about the success of a SCSI command. If this field is 1, the host should issue a SCSI REQUEST SENSE command to get more information about what went wrong\cite{usb_ms_jan}. More on this SCSI command later. If this value is 2 the host should perform a reset recovery. 
+The bCSWStatus informs about the success of a SCSI command. If this field is 1, the host should issue a SCSI REQUEST SENSE command to get more information about what went wrong\cite{usb_ms_jan}. More on this SCSI command later. If this value is 2 the host should perform a reset recovery. The reset consists of a bulk-only mass storage reset, which is one of the class specific commands and a Clear Feature HALT on the IN and OUT endpoint\cite{usb_ms_jan, usb_mass_bulk}.
+
+The fields in the CBW and CSW are all serialized in little endian style.
+
+\section{SCSI Commands}
+
+The Small Computer System Interface (SCSI) is a standard for connecting and communicating a computer with peripheral devices. It is most commonly used for hard disks and other sotrage devices, but it can also used for example for scanners\cite{wiki_scsi}. SCSI commands are used to get general information about the connected storage device, but also for reading and writing data from and to it. The USB mass storage class also uses this well established standard.
+
+The are a lot of different SCSI commands and not every device supports every command. To determine which commands a device supports, the host issues a SCSI INQUIRY command. Every device has to support this command and deliver a meaningful response to it. The device discloses with the information included in the response which commands are supported, ie. which standardization it follows. In practise the most common used commands are these\cite{usb_ms_jan}:
+
+\begin{itemize}
+\item INQUIRY
+\item READ CAPACITY(10)
+\item READ(10)
+\item REQUEST SENSE
+\item TEST UNIT READY
+\item WRITE(10)
+\end{itemize}
+
+Every device should support at minimum these commands! SCSI commands use the big endian style for storing fields bigger than one byte. Every SCSI command starts with the operation code, also called OPCODE (one byte), which identifies the command. The following data then depends on the specific command. The ten after some commands describes the length of the command. There are for example different READ commands, READ(6), READ(10), READ(12), READ(16) and READ(32)\cite{scsi_seagate}. These commands all differ in their length. The READ(32) command is the biggest command. This is needed because in the READ(6) command, the logical block address field which is used to address a block is only 16 bit. However devices with a big storage cannot use this command because some parts of the memory cannot be addressed because their address would exceed the range of a 16 bit value. Thus in the READ(10) command, which is the most commonly used, the address field is 32 bit.
+
+\subsection{INQUIRY}
+
+As already mentioned the INQUIRY command is used to get general infomration about the connected strage device. A host should issue this command at first to determine which commands are supported by the device. The response is the transferred in the data phase between sending the CBW which includes the INQUIRY command and receiving the CSW. The direction of the data phase is from the device to the computer.
+
+\begin{table}[ht]
+\caption{INQUIRY command, compare to: \cite{scsi_seagate}}
+\centering
+\begin{tabular}{|l|l|}
+\hline\hline
+\textbf{Byte} & \textbf{Description}\\ \hline
+0 & Operation code (12h) \\ \hline
+1 & Bit 0: EVPD, Bit 1: Obsolete, Bit 2-7: Reserved\\ \hline
+2 & Page Code \\ \hline
+3 & Allocation Length MSB \\ \hline
+4 & Allocation Length LSB \\ \hline
+5 & Control \\ \hline
+\end{tabular}
+\label{table:inquiry}
+\end{table}
+
+The most important fields in the INQUIRY command are the operation code and the allocation length. The allocation length tells the storage device how many bytes the host has allocated for the INQUIRY response. The device then replies with an answer at most as big as the allocation length. The allocation field should be at leasst five (bytes). The EVPD\footnote{Enable Vital Product Data} and the page code are used to get more information about the vital product data. If the EVPD bit is set to one, the device should return the part of the vital product data specified in the field page code. If the EVPD bit is set to zero only the standard INQUIRY data shall be returned\cite{scsi_seagate}. We will only look at the latter case.
+
+The Allocation Length field and the Control field are commonly used fields which occur in various SCSI commands\cite{scsi_seagate}.
+
+The response to the standard INQUIRY request shall contain 36 bytes\cite{scsi_seagate}. Bytes 5 until N consists of fields we will not discuss, because they are less important and vendor sepcific information.
+
+\begin{table}[ht]
+\caption{Standard INQUIRY data, compare to: \cite{usb_ms_jan, scsi_seagate}}
+\centering
+\begin{tabular}{|l|l|}
+\hline\hline
+\textbf{Byte} & \textbf{Description}\\ \hline
+0 & Bit 0-4: Peripheral device type, Bit 5-7: Peripheral Qualifier \\ \hline
+1 & Bit 0-6: Reserved, Bit 7: RMB \\ \hline
+2 & Version \\ \hline
+3 & Bit 0-3: Response data format, Bit 4: HISUP, Bit 5: NORMACA Bit 6,7: Obsolete \\ \hline
+4 & Additional length (N-4) \\ \hline
+5-N & ... \\ \hline
+\end{tabular}
+\label{table:inquiry_data}
+\end{table}
+
+The peripheral device type shall always be zero. This indicatdes that a peripheral device is connected to the logical unit. The peripheral qualifier describes the connected device. If this field is set to zero the connected device is a direct access block device. A value of two means a printer device and a value of five means a CD or DVD drive\cite{usb_ms_jan, scsi_seagate}. In our case this value shall also always be zero for the direct access block device.
+
+The RMB bit indicates if the device is removable or not. Zero indicates a non removable device and one a removable device. USB flash drives are removable devices, but they have a fixed media unlike card readers. But Microsoft suggests that flash drives declare they habe removable media, and thus some flash drives do this\cite{usb_ms_jan}.
+
+The Version field indicates which standard of the SPC (SCSI Primary commands) the device follows. If the value is zero the device does not comply to any standard. If the value is three or four, the device complies to the SPC or SPC-2 standard\cite{usb_ms_jan, scsi_seagate}.
+
+The Response Data Format field must equal to two, because values lower than two are obsolete and values bigger than two reserved\cite{scsi_seagate}.
+
+The additional length provides information about how many bytes are remaining in the response. The additional data is not important for us at the moment.
+
+\subsection{TEST UNIT READY}
+
+This command tests if the storage device is ready to use. This command does not have a data phase. If the device is ready to use the CSW status is set to successful and if not to command failed. In the latter case the host should issue a SCSI REQUEST SENSE, to get information about what is wrong. When the device has removable media, this command can be used to check if a media is currently present\cite{usb_ms_jan}.
+
+\begin{table}[ht]
+\caption{TEST UNIT READY command\cite{scsi_seagate}}
+\centering
+\begin{tabular}{|l|l|}
+\hline\hline
+\textbf{Byte} & \textbf{Description}\\ \hline
+0 & Operation Code (00h)\\ \hline
+1-4 & Reserved \\ \hline
+5 & Control \\ \hline
+\end{tabular}
+\label{table:unit_ready}
+\end{table}
+
+\subsection{READ CAPACITY}
+
+The READ CAPCITY command is used to determine the sotrage space of a device. The device tells the host the logical block address (LBA) of the last block and the size in bytes of one single block. The total number of blocks is then LBA of the last block address plus one. The direction of the data phase is from the device to the computer.
+
+\begin{table}[ht]
+\caption{READ CAPACITY(10) command\cite{scsi_seagate}}
+\centering
+\begin{tabular}{|l|l|}
+\hline\hline
+\textbf{Byte} & \textbf{Description}\\ \hline
+0 & Operation Code (25h)\\ \hline
+1 & Bit 0: Obsolete, Bit 1-7: Reserved \\ \hline
+2-5 & Logical Block Address (Byte 2: MSB, Byte 5: LSB) \\ \hline
+6,7 & Reserved \\ \hline
+8 & Bit 0: PMI, Bit 1-7: Reserved \\ \hline
+9 & Control \\ \hline
+\end{tabular}
+\label{table:read_capacity}
+\end{table}
+
+If the PMI (parial media indicator) bit is set to zero, the logical block addres also must be set to zero. The device then returns information of the last logical block. If the PMI bit is set to one, the Seagte manual on SCSI commands says: "A PMI bit set to one specifies that the device server return information on the last logical block after that specified in the LOGICAL BLOCK ADDRESS field before a substantial vendorspecific delay in data transfer may be encountered."\cite{scsi_seagate}
+
+The response transferred in the data phase looks like this:
+
+\begin{table}[ht]
+\caption{READ CAPACITY(10) command, compare to \cite{usb_ms_jan, scsi_seagate}}
+\centering
+\begin{tabular}{|l|l|}
+\hline\hline
+\textbf{Byte} & \textbf{Description}\\ \hline
+0-3 & Last Logical Block Address (Byte 0: MSB, Byte 3: LSB)\\ \hline
+4-7 & Block length in bytes (Byte 4: MSB, Byte 7: LSB) \\ \hline
+\end{tabular}
+\label{table:read_capacity_response}
+\end{table}
