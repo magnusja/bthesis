@@ -385,7 +385,7 @@ The are a lot of different SCSI commands and not every device supports every com
 \item WRITE(10)
 \end{itemize}
 
-Every device should support at minimum these commands! SCSI commands use the big endian style for storing fields bigger than one byte. Every SCSI command starts with the operation code, also called OPCODE (one byte), which identifies the command. The following data then depends on the specific command. The ten after some commands describes the length of the command. There are for example different READ commands, READ(6), READ(10), READ(12), READ(16) and READ(32)\cite{scsi_seagate}. These commands all differ in their length. The READ(32) command is the biggest command. This is needed because in the READ(6) command, the logical block address field which is used to address a block is only 16 bit. However devices with a big storage cannot use this command because some parts of the memory cannot be addressed because their address would exceed the range of a 16 bit value. Thus in the READ(10) command, which is the most commonly used, the address field is 32 bit.
+Every device should support at minimum these commands! SCSI commands use the big endian style for storing fields bigger than one byte. Every SCSI command starts with the operation code, also called OPCODE (one byte), which identifies the command. The following data then depends on the specific command. The ten after some commands describes the length of the command in bytes. There are for example different READ commands, READ(6), READ(10), READ(12), READ(16) and READ(32)\cite{scsi_seagate}. These commands all differ in their length. This is needed because in the READ(6) command, the logical block address field which is used to address a block is only 16 bit. However devices with a big storage cannot use this command because some parts of the memory cannot be addressed because their address would exceed the range of a 16 bit value. Thus in the READ(10) command, which is the most commonly used, the address field is 32 bit.
 
 \subsection{INQUIRY}
 
@@ -400,8 +400,7 @@ As already mentioned the INQUIRY command is used to get general information abou
 0 & Operation code (12h) \\ \hline
 1 & Bit 0: EVPD, Bit 1: Obsolete, Bit 2-7: Reserved\\ \hline
 2 & Page Code \\ \hline
-3 & Allocation Length MSB \\ \hline
-4 & Allocation Length LSB \\ \hline
+3-4 & Allocation Length (Byte 3: MSB, Byte 4: LSB) \\ \hline
 5 & Control \\ \hline
 \end{tabular}
 \label{table:inquiry}
@@ -491,3 +490,403 @@ The response transferred in the data phase looks like this:
 \end{tabular}
 \label{table:read_capacity_response}
 \end{table}
+
+\subsection{READ(10) and WRITE(10)}
+
+The READ(10) command requests the device to read the specified blocks from the storage and transfer them to the computer. The logical block address included in the command specifies the block where reading shall begin. The transfer length field holds the amount of contiguous blocks that shall be read. The device then transmits the requested data in the data transport phase. The device does not have to care about the actual data, it just transfers it to the host just like it is saved on the storage. Table \ref{table:read_10} shows how the READ(10) command is constructed.
+
+\begin{table}[ht]
+\caption{READ(10) command\cite{scsi_seagate}}
+\centering
+\begin{tabular}{|l|p{10cm}|}
+\hline\hline
+\textbf{Byte} & \textbf{Description}\\ \hline
+0 & Operation Code (28h)\\ \hline
+1 & Bit 0: Obsolete, Bit 1: FUA\_NV, Bit 2: Reserved, Bit 3: FUA, Bit 4: DPO, Bit 5-7: RDPROTECT \\ \hline
+2-5 & Logical Block Address (LBA) (Byte 2: MSB, Byte 5: LSB) \\ \hline
+6 & Bit 0-4: Group Number, Bit 5-7: Reserved \\ \hline
+7,8 & Transfer Length (Byte 7: MSB, Byte 8: LSB) \\ \hline
+9 & Control \\ \hline
+\end{tabular}
+\label{table:read_10}
+\end{table}
+
+For us only the LBA and Transfer Length fields are important. The other fields shall remain zero. They are responsible for example to specify caching behavior or read protection\footnote{Maybe you remember the pen drives which had a physical switch for write protection}.
+
+The WRITE(10) command looks exactly like the READ(10) command except that the operation code is 2Ah and the RDPROTECT field is called WDPROTECT. The direction of the data phase is, of course, now the other way rounf, from computer to the device. Remember that the direction has to be specified correctly in the CBW!
+
+\subsubsection{Logical Block Address}
+
+Every mass storage device is structured in blocks. These blocks have a definite size. The size of each block can be determined by issuing a READ CAPACITY(10) command. The blocks are numbered contiguous beginning from zero to the amount of blocks minus one. This number is called logical block address, short LBA. With the LBA every block can easily be addressed and accessed. The READ(10) and WRITE(10) SCSI commands use this method of addressing for reading and writing data to the storage medium. The transfer length specifies how many blocks, including the block at the LBA, shall be transferred. That means you can start reading or writing beginning at a block defined through the LBA and then read or write as many directly following blocks as desired.
+
+\subsection{REQUEST SENSE}
+
+If the device fails executing a SCSI command requested by the computer, an unsuccessful CSW status is set. The computer then knows that something went wrong, but it does not know what went wrong. To get more information about the specific error the host can issue a REQUEST SENSE command, to request the sense data from the device.
+
+\begin{table}[ht]
+\caption{REQUEST SENSE command\cite{scsi_seagate}}
+\centering
+\begin{tabular}{|l|l|}
+\hline\hline
+\textbf{Byte} & \textbf{Description}\\ \hline
+0 & Operation Code (03h)\\ \hline
+1 & Bit 0: DESC, Bit 1-7: Reserved \\ \hline
+2-3 & Reserved \\ \hline
+4 & Allocation Length \\ \hline
+5 & Control \\ \hline
+\end{tabular}
+\label{table:request_sense}
+\end{table}
+
+The DESC bit describes if the fixed sense data or the descriptor format sense data shall be transferred. A value of zero requests the fixed sense data\cite{scsi_seagate}.
+
+The Allocation Length field indicates, like in the INQUIRY command, how many bytes the host has allocated for data received. The device nether sends more data than the host has actually allocated. But that means that some information can be lost if the data is actually bigger than the allocated space.
+
+Table \ref{table:sense_data} shows the contents of the fixed sense data transferred from the device to the computer in the data transport phase. The size of the sense data is normally 252 bytes, with vendor specific information beginning at byte 18.
+
+\begin{table}[ht]
+\caption{Standard INQUIRY data, compare to: \cite{usb_ms_jan, scsi_seagate}}
+\centering
+\begin{tabular}{|l|l|}
+\hline\hline
+\textbf{Byte} & \textbf{Description}\\ \hline
+0 & Bit 0-6: Response Code, Bit 7: VALID \\ \hline
+1 & Obsolete \\ \hline
+2 & Bit 0-3: SENSE KEY, Bit 4: Reserved, Bit 5: ILI, Bit 6: EOM, Bit 7:  FILEMARK \\ \hline
+3-6 & Information (Byte 3: MSB, Byte 6: LSB) \\ \hline
+7 & Additional sense length (N-7) \\ \hline
+8-11 & Command-specific information (Byte 8: MSB, Byte 11: LSB) \\ \hline
+12 & Additional Sense Code \\ \hline
+13 & Additional Sense Code Qualifier \\ \hline
+14 & Field replaceable unit code \\ \hline
+15-17 & Bit 0-20: Sense key Specific, Bit 21: SKSV \\ \hline
+18-N & ... \\ \hline
+\end{tabular}
+\label{table:sense_data}
+\end{table}
+
+For a detailed description of these fields please refer to the SCSI commands reference manual from Seagate\cite{scsi_seagate}.
+
+\chapter{File systems}
+
+\section{General}
+
+With the USB bulk transfers and the SCSI commands we are now able to read and write raw data from and to the device. That means we can access the bytes stored on the medium. But we now need some abstraction to handle the raw data. To do this on mass storage devices we mostly use file systems. A file system is an approach to organize directories and files and give them human readable names. Thus the user can easily find things without knowing something about the addressing methods of an mass storage device.
+
+\subsubsection{Directories}
+
+A directory is a container for files and other directories. With the help of a directory the contents of a file system or mass storage device can easily be structured in a tree based way. Every file system has a root directory which is the directory at the top of the file system.
+
+\subsubsection{Files}
+
+Other than directories, files do not help structuring the contents, but hold the actual data the user wants to save and later access again.
+
+\subsection{Examples}
+
+Today there exist many different file systems. Most important file systems are FAT32 and NTFS from Windows background, ext3, ext4 and btrfs from the Linux/Unix background and HFS+, also called Mac OS Extended, developed by Apple for their OS X operating system. All listed file systems, except FAT32, use binary trees or something related to structure the contents of the directories.
+
+On USB mass storage devices the most popular file systems are FAT32 and NTFS, because obviously most people use the Windows operating system. The NTFS specification is not published by Microsoft. Thus it is very hard to support the NTFS on other systems, but it for example exist NTFS support in the Linux kernel. The FAT32 specification is publicly available and can be downloaded from the Microsoft website\footnote{\url{http://msdn.microsoft.com/en-us/windows/hardware/gg463080.aspx}}. Because of the lack of support for unix like file systems on Windows, the Linux and OS X file systems are only used by someone who do not need to work with Windows machines. Therefore for our purpose we will have a closer look at the FAT32 file system which has an open specification and is very popular on sd cards and pen drives.
+
+\subsection{Partition Table}
+
+Before having a closer look at the FAT32 file system we will discuss partition tables. One physical drive can have multiple partitions which operate independent from each other. They can also have different file systems. In Windows for example every partition will get a separate drive letter.
+
+A partition table holds the information needed to identify a handle the different partitions on the disk. These information include where the partition on the disk starts, ends or how many blocks it occupies and with which file system the partition is formatted. There are two different partition tables most commonly used today. The Master Boot Record (MBR) and the GUID partition table (GPT) which is part of the UEFI standard\cite{wiki_guid}. The Master Boot Record is used in PCs with BIOS and is currently replaced by the GPT in UEFI PCs. On USB mass storage devices mostly the MBR is applicable. 
+
+\subsubsection{The Master Boot Record}
+
+The MBR occupies 512 bytes at the beginning (LBA zero) of the medium. The first 446 bytes can store executable code the BIOS executes when the PC is booting. The executable code is then responsible for booting from an bootable partition. Beginning with byte 446 the partition table starts. There is place for up to four different partition table entries. The last two bytes are the boot signature which identify the MBR. Byte 510 must be 55h and byte 511 must be AAh.
+
+Since there is only place for four partition table entries a disk formatted with the MBR normally could only have up to four different partitions, called primary partitions. But there is also a solution for that, called extended partitions. An extended partition has its own partition table enclosed by the extended boot record (EBR). The partition table entry in the MBR then points to the EBR which is followed by the extended partition. An EBR can contain one additional entry for an extended partition, thus there is theoretically no limit to the number of extended partitions\cite{usb_ms_jan}.
+
+\begin{table}[ht]
+\caption{Partition Table Entry in the MBR, compare to: \cite{usb_ms_jan}}
+\centering
+\begin{tabular}{|l|l|l|}
+\hline\hline
+\textbf{Byte} & \textbf{Size} & \textbf{Description}\\ \hline
+0 & 1 & Boot Indicator, 00h for non bootable partition, 80h for bootable partition \\ \hline
+1 & 1 & CHS addressing \\ \hline
+2 & 2 & CHS addressing \\ \hline
+4 & 1 & Partition Type \\ \hline
+5 & 1 & CHS addressing \\ \hline
+6 & 2 & CHS addressing \\ \hline
+8 & 4 & LBA of the first sector \\ \hline
+12 & 4 & Total number of sectors/blocks the partition occupies \\ \hline
+\end{tabular}
+\label{table:mbr_entry}
+\end{table}
+
+The important fields of a partition table entry fields are located at byte four, eight and twelve. The fields for CHS addressing are pretty much obsolete. It is a former way to address the the blocks on a block device through cylinder head and sector information. Today only the logical block addressing mechanism is important.
+
+The partition table entry holds the first logical block address of the partition. This is where the partition starts, and the contents of the file system of the desired partition begin. The entry also holds the total number of blocks the partition occupies, but mostly this value is also stored in the file system of the partition, and most software uses this value instead\cite{usb_ms_jan}.
+
+The partition type can either be a value indicating which file system the partition has, eg. 0Bh or 0C for FAT32 or if this entry stands for an extended partition. Extended partitions are identified by values of 05h or 0Fh. If the partition table entry is unused the partition type must equal to zero\cite{usb_ms_jan}.
+
+All fields bigger than one byte are stored using the little endian style, this also corresponds to the FAT32 file system.
+
+\subsubsection{Drives without a partition table}
+
+Sometimes drives do not have a partition table. If the device requires only one partition, the partition table is only a waste of space. If devices do not have a partition table, the file system directly begins at LBA zero.
+
+But it is pretty hard to determine if the device has a partition table or if the file system directly starts, thus most devices have a partition table. 
+
+\section{The FAT32 file system}
+
+The FAT32 file system was developed and published in 1996 with Windows 95. FAT means File Allocation Table which is an important part of every FAT32 system, but more on that later. There are two ancestors of the FAT32 file system, FAT12 and FAT16. They vary in the size of an entry in the FAT. The entries of the FAT in a FAT32 file system have the size of 32 bit. Due to the size of 32 bit FAT32 has one big disadvantage. The file size is limited to 4 GiB - 1 Byte, which is sometimes unpleasant in everyday situations\cite{wiki_fat}.
+
+\subsection{General layout}
+
+The general layout of every FAT32 file system consists of following things\cite{fatgen103, wiki_fat}:
+
+\begin{enumerate}
+\item Reserved Region (Boot Sector, FS Information Sector, optional reserved sectors)
+\item File Allocation Table
+\item Data area (directories and files)
+\end{enumerate}
+
+\subsubsection{Reserved Region}
+
+The reserved region includes the boot sector and the FS Information sectors. The boot sector holds important information of the FAT32 file system. For example the sector and the cluster size, the start cluster of the root directory and how many FATs exist. The FS Information Sector holds information about the last allocated cluster and the free cluster count. A file system driver can then easier locate a free cluster and give information about the remaining free space on the disk. After that optional reserved sectors can follow, for example a backup of the boot sector and the FS Information Structure\cite{usb_ms_jan}.
+
+\subsubsection{File Allocation Table}
+
+The contents of the FAT32 file system is structured in so called clusters. A cluster has a specific size which is specified in the boot sector. A cluster is smallest unit which can be allocated in the file system. That means if a file for example has only one bytes of contents but the cluster size is 4096 bytes the file will need 4096 bytes of space. The unneeded 4095 bytes are padded and wasted because they cannot be used for other files.
+
+Every FAT32 file system has a definite amount of clusters which can be used for storing contents. The FAT gives an overview of which clusters are used and which are free. The FAT is a dynamically linked list. Giving a start cluster the FAT can be followed to a end of chain mark. The resulting cluster chain helps locating the contents on the disk.
+
+\subsubsection{Data area}
+
+The data area holds the actual contents of the file system. These are directories and files.
+
+\subsection{Boot Sector and FS Information Structure}
+
+\subsubsection{Boot Sector}
+
+At the beginning of every FAT32 file system the boot sector is located. Table \ref{table:fat_boot_sector} shows the contents of the boot sector. The boot sector has the size of one sector (BPB\_BytsPerSec), which is typically 512 byte. A lot of fields which are not important to us are left out. If you want to see a complete overview over the fields please consult the official FAT specification from Microsoft\cite{fatgen103}.
+
+\begin{table}[!ht]
+\caption{Boot Sector, compare to: \cite{usb_ms_jan, fatgen103}}
+\centering
+\begin{tabular}{|l|l|l|p{9cm}|}
+\hline\hline
+\textbf{Name} & \textbf{Byte (Offset)} & \textbf{Size} & \textbf{Description}\\ \hline
+BPB\_BytsPerSec & 11 & 2 & Count of bytes per one single sector. This is mostly 512 bytes, and other allowed values are 1024, 2048 and 4096. A lot of file system drivers assume that this field is 512 and do not check it! \\ \hline
+BPB\_SecPerClus & 13 & 1 & Count of sectors per cluster. This value must be a power of two greater than 0 and is mostly 8. The cluster size in bytes can be calculated with BPB\_BytsPerSec * BPB\_SecPerClus. \\ \hline
+BPB\_RsvdSecCnt & 14 & 2 & Number of reserved sectors at the beginning of the volume, including the boot sector, preceding the FATs. This value is typically 32. \\ \hline
+BPB\_NumFATs & 16 & 1 & The number of FATs in this file system. The FATs can be mirrored to provide redundancy to ensure that there is always a valid FAT which is not corrupt due to bad sectors or something else. This value is typically 2, meaning there are two different FATs holding the same information. \\ \hline
+BPB\_TotSec32 & 32 & 4 & The total amount of sectors in the file system. \\ \hline
+BPB\_FATSz32 & 36 & 4 & The number of sectors one FAT occupies. \\ \hline
+BPB\_ExtFlags & 40 & 2 & Bit 0-3: Zero based number of the valid FAT if mirroring of FATs is disabled. Bit 7: Indicates if FATs are mirrored or not. Zero for mirroring, one if only one FAT is valid. Valid FAT can be determined with Bit 0-3. Other bits are reserved. \\ \hline
+BPB\_RootClus & 44 & 4 & The start cluster of the root directory. This is typically cluster 2. \\ \hline
+BPB\_FSInfo & 48 & 2 & The sector number of the FS Information Sector in the reserved region. \\ \hline
+BPB\_BkBootSec & 50 & 2 & If this value is non zero, it indicates the sector number of the backup boot sector within the reserved region. This valie is typically 6. \\ \hline
+BS\_VolLab & 71 & 11 & Human readable string which gives the volume a name. This field is often replaced by a volume label entry in the root directory. \\ \hline
+\end{tabular}
+\label{table:fat_boot_sector}
+\end{table}
+
+The boot sector has the same boot signature at byte 510 and 511 like the MBR. That is another problem why it is problematic determining if the current drive has a MBR or if the file system directly starts.
+
+\newpage
+
+\subsubsection{FS Information Structure}
+
+The FS Information Structure, also called FSInfo Sector Structure in Microsoft documents, helps finding free clusters quickly. Because the FAT can be very big in a FAT32 file system it can take a lot of time to go through the hole FAT and search for a free cluster. For that reason, the FSInfo Structure holds a hint to the last allocated cluster. It also stores the count of free clusters. The location of the sector is stored in the boot sector.
+
+\begin{table}[!ht]
+\caption{FSInfo Sector, compare to: \cite{fatgen103}}
+\centering
+\begin{tabular}{|l|l|l|p{9cm}|}
+\hline\hline
+\textbf{Name} & \textbf{Byte (Offset)} & \textbf{Size} & \textbf{Description}\\ \hline
+FSI\_LeadSig & 0 & 4 & Fixed value of 41615252h to identify the FSInfo Sector. \\ \hline
+FSI\_Reserved1 & 4 & 480 & Reserved and normally set to zero. \\ \hline
+FSI\_StrucSig & 484 & 4 & Fixed value of 61417272h to identify the FSInfo Sector. \\ \hline
+FSI\_Free\_Count & 488 & 4 & The amount of free clusters in the volume. If FFFFFFFFh the free cluster count is unknown and should be computed. \\ \hline
+FSI\_Nxt\_Free & 492 & 4 & The last known allocated cluster in the volume. A file system driver should use this as a hint where to start searching for the free clusters. This does not mean the cluster after the last known is really free, it is just a hint! If FFFFFFFFh last allocated cluster hint is not available. \\ \hline
+FSI\_Reserved2 & 496 & 12 & Reserved and normally set to zero. \\ \hline
+FSI\_TrailSig & 508 & 4 & Fixed value of AA550000h to identify the FSInfo Sector. \\ \hline
+\end{tabular}
+\label{table:fat_fs_info}
+\end{table}
+
+\subsection{File Allocation Table}
+
+As already mentioned, the File Allocation Table (FAT) is a dynamically linked list with a fixed size. It starts directly after the reserved region. The size of the FAT is stored in the boot sector of the FAT32 file system. The FAT is very important, because it holds the information about which clusters are used and which not. Moreover it defines which different clusters combined define a file or directory. Thus the FAT can be mirrored, for backup reasons. The count of FATs is also located in the boot sector. The next FAT directly begins after the current FAT. Normally on a FAT32 file system there are two FATs holding the same information.
+
+Every entry of the FAT is 32 bit, with the lower 28 bit representing the cluster number. The other four bit are unused. The first two entries in the FAT do not store any information about clusters, the data area begins with cluster 2.
+
+\subsubsection{Cluster chains}
+
+A series of clusters is called a cluster chain. Every directory or file consists of a specific cluster chain defining the location of the contents of the disk. To follow such a chain, a start cluster is needed. The start cluster of the root directory for example is stored in the boot sector. A FAT32 file system then seeks into the FAT where start cluster is located. In bytes this is 4 * start cluster (Every entry is 32 bit = 4 byte). The value stored at this location is the next cluster in the chain. This is repeated until the value stored is a end of chain mark. This determines the end of a cluster chain. A value above FFFFFF7h is an end of chain mark. A value of zero indicates that the cluster is free and a value of one that the cluster is reserved. A value of FFFFFF7h stands for a bad cluster.
+
+\begin{figure}[h!]
+\caption{Simplified illustration of a FAT and following cluster chain.}
+\centering
+\includegraphics{figures/cluster_chain}
+\end{figure}
+
+After evaluating the cluster chain, the file system driver can access the contents of the clusters in the data area. To do this, the logical block address where a cluster starts can be computed as follows: ((cluster - 2) * sectors per cluster) + data area offset
+
+\subsection{Directories}
+
+Directories are located in the data area of a FAT32 file system. The exact location of the contents and which clusters correspond to the directory must be determined by a cluster chain from the FAT. A directory consists of multiple 32 byte entries describing the contents of the directory. The contents can either be other directories, so called sub directories or files. The root directory is always present on a FAT32 file system. The start cluster of the root directory is stored in the boot sector. The root directory can also have a special entry not only describing files and other directories but an optional volume label which gives the volume a name. Remember that such a volume label could also be specified in the boot sector.
+
+\begin{table}[!ht]
+\caption{Fat Directory Entry, compare to: \cite{usb_ms_jan, fatgen103}}
+\centering
+\begin{tabular}{|l|l|l|p{9cm}|}
+\hline\hline
+\textbf{Name} & \textbf{Byte (Offset)} & \textbf{Size} & \textbf{Description}\\ \hline
+DIR\_Name & 0 & 11 & The short name of the directory or file. \\ \hline
+DIR\_Attr & 11 & 1 & Attributes to determine if this entry describes a directory or a file, etc.. \\ \hline
+DIR\_NTRes & 12 & 1 & Reserved. \\ \hline
+DIR\_CrtTimeTenth & 13 & 1 & Timestamp which holds the tenth of a second when the file was created. The range os from 0 to 199. \\ \hline
+DIR\_CrtTime & 14 & 2 & The time the file was created. \\ \hline
+DIR\_CrtDate & 16 & 2 & The date the file was created. \\ \hline
+DIR\_LstAccDate & 18 & 2 & The date the file was last accessed (read or write). \\ \hline
+DIR\_FstClusHI & 20 & 2 & The higher two bytes of the entries start cluster. Unused if the entry is not a file. \\ \hline
+DIR\_WrtTime & 22 & 2 & The time the file last modified (write). \\ \hline
+DIR\_WrtDate & 24 & 2 & The date the file last modified (write). \\ \hline
+DIR\_FstClusLO & 26 & 2 & The lower two bytes of the entries start cluster. Unused if the entry is not a file. \\ \hline
+DIR\_FileSize & 26 & 4 & The length of a file in bytes. Unused if the entry is not a file. \\ \hline
+\end{tabular}
+\label{table:fat_dir_entry}
+\end{table}
+
+\subsubsection{Short name}
+
+Every entry has a short name which is a human readable name. The name consists of eight characters for the file name and three optional characters for the file extension. Therefore it is also called 8.3 name. The period to separate name and extension is not stored in the short name. If a name does not need the hole eight characters the unused characters have to be padded with spaces (ASCII: 20h). The same applies for the extension. A short name has various limitations\cite{usb_ms_jan}:
+
+\begin{itemize}
+\item Each character is only eight bit (no unicode support)
+\item It has to begin with a letter or a number
+\item Every character is stored upper case
+\item Other valid characters are: \$ \% $'$ -  \_ @ ~ $`$ ! ( ) { } \^ \# \&
+\end{itemize}
+
+If the first byte of the short name equals to E5h, then this directory entry is free and has been deleted. If the first byte equals to 00h, then this entry is also free, but there will not follow any entries, looping through the entries can thus be stopped. In the first case it can happen that there are valid entries that follow. If the first byte equals to 05h, then the actual value of the first byte shall be E5h, which is a KANJI lead byte used in Japan. This has a workaround for avoiding the entry to be accidentally treat as free (deleted).
+
+\subsubsection{Attributes}
+
+\begin{table}[!ht]
+\caption{Attributes of an entry, compare to: \cite{usb_ms_jan, fatgen103}}
+\centering
+\begin{tabular}{|l|l|p{9cm}|}
+\hline\hline
+\textbf{Name} & \textbf{Value}  & \textbf{Description}\\ \hline
+ATTR\_READ\_ONLY & 01h & The file is read only and writing to it should fail. \\ \hline
+ATTR\_HIDDEN & 02h & A hidden entry the user should not see in normal mode. \\ \hline
+ATTR\_SYSTEM & 04h & A file from the operating system. \\ \hline
+ATTR\_VOLUME\_ID & 08h & This entry is not a file and not a directory, it is the entry which stores the volume label. This can only occur in the root directory and only once. \\ \hline
+ATTR\_DIRECTORY & 10h & Indicates that the entry describes a (sub)directory. \\ \hline
+ATTR\_ARCHIVE & 20h & Value to help backup utilities to identify files that changed since the last backup. Should be set if a file has been changed. \\ \hline
+ATTR\_LONG\_NAME & 0fh & Indicates that this entry is not a file or a directory but an entry which holds a long file name. \\ \hline
+\end{tabular}
+\label{table:fat_dir_entry_attr}
+\end{table}
+
+The last attribute in table \ref{table:fat_dir_entry_attr} stands for a long file name entry. Because of the limitations of the short name, Microsoft added support for long file names afterwards. To ensure backward compatibility they used some sort of work around to hide the long file names in normal directory entries. We will discuss them later in detail.
+
+If the volume id attribute is set, the short name is not actually the name of a file, it is the name of the volume. The volume name is shown in the Windows Explorer directly left of the drive letter. The volume label can have up to eleven characters, but there is now period between the eighth and the ninth character.
+
+\subsubsection{Date and time fields}
+
+In the directory entry there are many date and time fields, the following describes how the date and time is stored in these fields. Every date and time field consists of two bytes. 
+
+\begin{table}[!ht]
+\caption{Date format, compare to: \cite{usb_ms_jan, fatgen103}}
+\centering
+\begin{tabular}{|l|p{9cm}|}
+\hline\hline
+\textbf{Bits} & \textbf{Description}\\ \hline
+0-4 & Day of month, range 1-31 \\ \hline
+5-8 & Month year, starting with 1 for January \\ \hline
+9-15 & Count of years from 1980, range 0-127 meaning 1980-2107 \\ \hline
+\end{tabular}
+\label{table:fat_dir_entry_date}
+\end{table}
+
+\begin{table}[!ht]
+\caption{Time format, compare to: \cite{usb_ms_jan, fatgen103}}
+\centering
+\begin{tabular}{|l|p{9cm}|}
+\hline\hline
+\textbf{Bits} & \textbf{Description} \\ \hline
+0-4 & Count of seconds in the resolution of 2 seconds, range 0-29 meaning 0-58 seconds \\ \hline
+5-10 & Minutes, range 0-59 \\ \hline
+11-15 & Hours, range 0-23 \\ \hline
+\end{tabular}
+\label{table:fat_dir_entry_time}
+\end{table}
+
+\subsection{Subdirectories}
+
+Every subdirectory must have two special entries. The dot (.) and the dotdot (..) entry. The dot entry points the the current subdirectory itself. It has the same values as the entry for the subdirectory in the parent directory, ie. same date and time fields, same start cluster, etc. The dotdot entry points to the parent directory, but the date and time fields remain like in the subdirectory. The start cluster of the dotdot entry is the same as for the parent directory except if the parent directory is the root directory, then it is set to zero.
+
+These two entries are the only exception where a short name can start with periods. The dot and dotdot entry must not have preceding long file name entries!
+
+The root directory does not have these two special entries, this rule only applies for subdirectories!
+
+\subsection{Long File Name entries}
+
+As already mentioned the short name of a directory entry has different disadvantages. For that reason Microsoft afterwards solved this problem by adding long file name (LFN) entries. These entries hide in the normal directory entries and look like a hidden file with a start cluster of zero, indicating that the file does not occupy any space. Thus old implementations which do not support long file name entries can nevertheless work with the file system and the 8.3 names.
+
+Long file names can have up to 255 characters and allows upper and lower case characters, leading, trailing and multiple periods and spaces in a file name\cite{usb_ms_jan}. Additionally these special characters are allowed\cite{fatgen103}: + , ; = [ ] 
+
+Each entry with a normal short name, can have one more long file name entries preceding the actual entry. A long file name entry can store up to 13 unicode characters meaning every character consists of two bytes.
+
+\begin{table}[!ht]
+\caption{Fat LFN Directory Entry, compare to: \cite{usb_ms_jan, fatgen103}}
+\centering
+\begin{tabular}{|l|l|l|p{9cm}|}
+\hline\hline
+\textbf{Name} & \textbf{Byte (Offset)} & \textbf{Size} & \textbf{Description}\\ \hline
+LDIR\_Ord & 0 & 1 & The order of the entry in the sequence of long file name entries. \\ \hline
+LDIR\_Name1 & 1 & 10 & The first five characters of the long file name. \\ \hline
+LDIR\_Attr & 11 & 1 & Must be ATTR\_LONG\_NAME. \\ \hline
+LDIR\_Type & 12 & 1 & Must be zero. \\ \hline
+LDIR\_Chksum & 13 & 1 & The checksum of the short name associated with this long file name. \\ \hline
+LDIR\_Name2& 14 & 12 & The next six characters of the long file name. \\ \hline
+LDIR\_FstClusLO & 26 & 2 & Must be zero. Long file name entries do not have a start cluster. \\ \hline
+LDIR\_Name3I & 28 & 4 & The last two characters of the long file name. \\ \hline
+\end{tabular}
+\label{table:fat_lfn_dir_entry}
+\end{table}
+
+The first byte is the number of the LFN entry. The first LFN entry before the short name entry, must have a value of one in that field. The second a two, and so on. If the LFN entry is the last entry, bit six of the LDIR\_Ord field has to be set to one, to indicate that it is the last one. There can be at most 20 LFN entries preceding a normal entry. The first LFN entry directly before the short name entry represents the begin of the long file name. That means the long file name is stored in "reverse order" on the disk. 
+
+The long file entry should be terminated with a null character (0h) if there is enough place, and unused characters shall be padded with FFFFh.
+
+\subsubsection{Checksum}
+
+Every long file name entry needs a checksum of the corresponding short name. These checksum is calculated as follows:
+
+\lstset{language=c}
+\begin{lstlisting}[caption=Calculation of short name checksum \cite{fatgen103}, label=listing:fat_checksum]
+//-----------------------------------------------------------------------------
+// ChkSum()
+// Returns an unsigned byte checksum computed on an unsigned byte
+// array. The array must be 11 bytes long and is assumed to contain
+// a name stored in the format of a MS-DOS directory entry.
+// Passed: pFcbName Pointer to an unsigned byte array assumed to be 11 bytes long.
+// Returns: Sum An 8-bit unsigned checksum of the array pointed to by pFcbName.
+//------------------------------------------------------------------------------
+unsigned char ChkSum (unsigned char *pFcbName)
+{
+    short FcbNameLen;
+    unsigned char Sum;
+    
+    Sum = 0;
+    for (FcbNameLen=11; FcbNameLen!=0; FcbNameLen--) {
+        // NOTE: The operation is an unsigned char rotate right
+        Sum = ((Sum & 1) ? 0x80 : 0) + (Sum >> 1) + *pFcbName++;
+    }
+    return (Sum);
+}
+\end{lstlisting}
+
+\subsubsection{Generating short names}
+
+Every directory entry which has preceding long file name entries nevertheless needs a valid short name. There exist different algorithms for generating valid short names given a long file name. The algorithms mainly consist of removing illegal characters and convert them to underscores (\_), removing spaces and periods, truncating the long file name to eight and the extension if available to three characters. All characters must be converted to upper case and a tilde (\textasciitilde) must added if the file name was truncated, contained illegal characters or an entry with the same short name already exists in the directory. The official FAT specification\cite{fatgen103} and the book from Jan Axelson\cite{usb_ms_jan} describe two different approaches to generate valid 8.3 short names.
