@@ -1,4 +1,4 @@
-\chapter{Purpose and Overview of the Framework}
+\chapter{Purpose and Overview}
 
 \subsubsection{Purpose}
 
@@ -141,7 +141,7 @@ This class is in charge to create a suitable block device driver for the connect
 
 This is the representation of a block device driver which uses the SCSI transparent command set for communicating with devices. It transfers SCSI commands to the device, receives the desired responses from the device and interprets them.\\
 
-All SCSI commands a modeled in an own class which extend the CommandBlockWrapper. The CommandBlockWrapper is an abstract class which is coupled with a SCSI command. Remember that every SCSI command is enclosed by a CBW in the SCSI transparent command set protocol. The CBW offers a method to serialize itself to a ByteBuffer. This data can then be directly transmitted to the device. The serialized data include the direction of the command, the transfer length in the transport phase and the length of the SCSI command.
+All SCSI commands a modeled in an own class which extend the CommandBlockWrapper. The CommandBlockWrapper is an abstract class which is always coupled with a SCSI command. Remember that every SCSI command is enclosed by a CBW in the SCSI transparent command set protocol. The CBW offers a method to serialize itself to a ByteBuffer. This data can then be directly transmitted to the device. The serialized data include the direction of the command, the transfer length in the transport phase and the length of the SCSI command.
 
 Every SCSI command also offers the serialization to a ByteBuffer, it first calls the serialization method of the CBW class (super class) and then adds serializes the own data to the ByteBuffer. Using this approach it is easy to wrap the CBW around the SCSI commands and new commands are easier to implement. 
 
