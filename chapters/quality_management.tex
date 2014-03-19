@@ -1,0 +1,64 @@
+\chapter{Testing}
+
+\section{Overview}
+
+To ensure the quality of the Framework it has been tested on a wide range of different devices. The results of the tests are explained in the following sections.
+
+\subsection{Testing criteria}
+
+On every device following things were tested, if they succeed or not:
+
+\begin{itemize}
+\item Listing contents of directories
+\item Read and write to files
+\item Add directories and files
+\item Remove directories and files
+\item Move directories and files to other directories
+\item Write files bigger then the cluster size, to check if the dynamic growing of a chain works correctly
+\end{itemize}
+
+\section{Results}
+
+The following table shows if the tests on the different devices were successful or not.
+
+\begin{table}[ht]
+\caption{Test results}
+\centering
+\begin{tabular}{|l|l|l|p{7cm}|}
+\hline\hline
+\textbf{Device} & \textbf{Android Version} & \textbf{Works} & \textbf{Comments} \\ \hline
+Archos 101 G9 & 4.0.4 & Yes & Has native support for USB mass storage devices. \\ \hline
+Google Nexus 4 & 4.4.2 & No & Does not have the USB host feature. \\ \hline
+Google Nexus 5 & 4.4 & Yes & - \\ \hline
+Google Nexus 7 & 4.2.2 & Yes & - \\ \hline
+Google Nexus 7 & 4.4.2 & Yes & - \\ \hline
+Google Galaxy Nexus & 4.3 & Yes & - \\ \hline
+Google Nexus S & 4.1.2 & No & Does not have the USB host feature. \\ \hline
+Samsung Galaxy S3 & 4.3 & Yes & Has native support for USB mass storage devices. \\ \hline
+\end{tabular}
+\label{table:test_results}
+\end{table}
+
+\subsection{Native support}
+
+Some devices natively support mounting USB mass storage devices without root rights. In this case this was the Samsung Galaxy S3 and the Archos 101 G9. When connecting a mass storage device via the USB OTG adapter to such a device, the device is automatically mounted and can be either accessed with the file manager which came with the device or any third party file manager. On the Archos device the mass storage is mounted under /mnt/ext\_storage.
+
+\subsection{Performance test}
+
+On Android versions lower 4.3 a specific method in the API is not available. It was later added with API level 18. To support older Android versions and overcome the lack, the framework uses a different API call on lower Android versions. This workaround can operate on the performance. To examine this insight towards the performance, the same file is copied from the mass storage to the internal storage, on different Android versions, but on the same device. If you want to learn about the API difference, please refer to the appendix.
+
+The file copied is an video file with the size of 155,883,762 bytes, which are approximately 148.6 megabytes. The two devices are Google Nexus 7 tablets and the Android versions are 4.4.2 and 4.2.2. The same USB pen drive was always used for the tests. The file was copied five times on every device, table \ref{table:performance_test} shows the average copy time.
+
+\begin{table}[ht]
+\caption{Performance test: Average time of copying same file five times on each device}
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline\hline
+\textbf{Android Version} & \textbf{Time in Milliseconds} & \textbf{Time in seconds} & \textbf{Time in minutes} \\ \hline
+4.2.2 & 84751 & $\sim$ 85 & $\sim$ 1.4 \\ \hline
+4.4.2 & 100040.6 & $\sim$ 100 & $\sim$ 1.6 \\ \hline
+\end{tabular}
+\label{table:performance_test}
+\end{table}
+
+The performance results are pretty interesting because the device with the lower Android version is definitely faster than the newer one. The difference is about 15 seconds! The devices behave exactly contrary as assumed. The reason for this is hard to find, maybe the USB Host stack changed very much in these two versions. But this would imply that the newer Android version provides an inferior performance consulting the USB Host support. Another reason could be that installed applications and running services in the background have a huge impact of the performance.

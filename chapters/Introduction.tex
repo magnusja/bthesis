@@ -763,7 +763,7 @@ Every entry has a short name which is a human readable name. The name consists o
 \item Each character is only eight bit (no unicode support)
 \item It has to begin with a letter or a number
 \item Every character is stored upper case
-\item Other valid characters are: \$ \% $'$ -  \_ @ ~ $`$ ! ( ) { } \^ \# \&
+\item Other valid characters are: \$ \% $'$ -  \_ @ $\sim$ $`$ ! ( ) { } \^{} \# \&
 \end{itemize}
 
 If the first byte of the short name equals to E5h, then this directory entry is free and has been deleted. If the first byte equals to 00h, then this entry is also free, but there will not follow any entries, looping through the entries can thus be stopped. In the first case it can happen that there are valid entries that follow. If the first byte equals to 05h, then the actual value of the first byte shall be E5h, which is a KANJI lead byte used in Japan. This has a workaround for avoiding the entry to be accidentally treat as free (deleted).
@@ -889,4 +889,4 @@ unsigned char ChkSum (unsigned char *pFcbName)
 
 \subsubsection{Generating short names}
 
-Every directory entry which has preceding long file name entries nevertheless needs a valid short name. There exist different algorithms for generating valid short names given a long file name. The algorithms mainly consist of removing illegal characters and convert them to underscores (\_), removing spaces and periods, truncating the long file name to eight and the extension if available to three characters. All characters must be converted to upper case and a tilde (\textasciitilde) must added if the file name was truncated, contained illegal characters or an entry with the same short name already exists in the directory. The official FAT specification\cite{fatgen103} and the book from Jan Axelson\cite{usb_ms_jan} describe two different approaches to generate valid 8.3 short names.
+Every directory entry which has preceding long file name entries nevertheless needs a valid short name. There exist different algorithms for generating valid short names given a long file name. The algorithms mainly consist of removing illegal characters and convert them to underscores (\_), removing spaces and periods, truncating the long file name to eight and the extension if available to three characters. All characters must be converted to upper case and a tilde ($\sim$) must added if the file name was truncated, contained illegal characters or an entry with the same short name already exists in the directory. The official FAT specification\cite{fatgen103} and the book from Jan Axelson\cite{usb_ms_jan} describe two different approaches to generate valid 8.3 short names.
