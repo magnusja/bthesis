@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="12.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>550</x>
+      <y>280</y>
+      <w>300</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>FatDirectoryEntry
+--
+~read(ByteBuffer data): FatDirectoryEntry
+~serialize(ByteBuffer buffer): void
+~isLfnEntry(): boolean
+~isDirectory(): boolean
+~isVolumeLabel(): boolean
+~isSystem(): boolean
+~isHidden(): boolean
+~isArchive(): boolean
+~isReadOnly(): boolean
+~isDeleted(): boolean
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>40</x>
+      <y>100</y>
+      <w>240</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>FatDirectory
+--
+-blockDevice: BlockDeviceDriver
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>290</x>
+      <y>100</y>
+      <w>240</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>FatFile
+--
+-blockDevice: BlockDeviceDriver
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>540</x>
+      <y>0</y>
+      <w>310</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>FatLfnDirectoryEntry
+--
+-lfnName: String
+--
+~read(...): FatLfnDirectoryEntry
+~serialize(ByteBuffer buffer): void
+~getName(): String
+~setName(String newName, 
+       ShortName shortName): void
+~getFileSize(): long
+~setFileSize(long newSize): void
+~getStartCluster(): long
+~setStartCluster(long newStartCluster): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>80</x>
+      <y>520</y>
+      <w>380</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>FsInfoStructure
+--
+~setFreeClusterCount(long value): void
+~getFreeClusterCount(): long
+~setLastAllocatedClusterHint(long value): void
+~getLastAllocatedClusterHint(): long
+~decreaseClusterCount(long numberOfClusters): void
+~write(): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>120</x>
+      <y>210</y>
+      <w>310</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>ClusterChain
+--
+-chain: Long[]
+--
+~read(long offset, ByteBuffer dest): void
+~write(long offset, ByteBuffer source): void
+~setLength(long newLength): void
+~getLength(): long
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>80</x>
+      <y>380</y>
+      <w>380</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>FAT
+--
+~getChain(long startCluster): Long[]
+~alloc(Long[] chain, int numberOfClusters): Long[]
+~free(Long[] chain, int numberOfClusters): Long[]
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>570</x>
+      <y>560</y>
+      <w>260</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>ShortName
+--
+~parse(ByteBuffer data): ShortName
+~getString(): String
+~serialize(ByteBuffer buffer): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Class</type>
+    <coordinates>
+      <x>190</x>
+      <y>10</y>
+      <w>220</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+UsbFile
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>130</x>
+      <y>20</y>
+      <w>120</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>100;30;30;80</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>340</x>
+      <y>20</y>
+      <w>90</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>30;30;70;80</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>120</x>
+      <y>120</y>
+      <w>110</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>30;30;90;90</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>320</x>
+      <y>120</y>
+      <w>100</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>80;30;30;90</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>240</x>
+      <y>300</y>
+      <w>50</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>30;30;30;80</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>240</x>
+      <y>440</y>
+      <w>50</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>30;30;30;80</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>610</x>
+      <y>170</y>
+      <w>142</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+actual  entry</panel_attributes>
+    <additional_attributes>80;110;80;30</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>670</x>
+      <y>470</y>
+      <w>50</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>30;90;30;30</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>440</x>
+      <y>120</y>
+      <w>120</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>100;60;30;60;30;30</additional_attributes>
+  </element>
+  <element>
+    <type>com.umlet.element.Relation</type>
+    <coordinates>
+      <x>210</x>
+      <y>120</y>
+      <w>280</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>260;60;30;60;30;30</additional_attributes>
+  </element>
+</diagram>

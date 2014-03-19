@@ -175,3 +175,35 @@ This class covers the Master Boot Record implementation. It has a static read me
 The Partition class was already introduced in the overview section (\ref{implementation_overview}), but this time we will have a closer look at how it interacts with the other classes of the package and the file system package. 
 
 The Partition class has access to the PartitionTableEntry it represents. It uses the information of stored in th entry to determine the starting point (LBA) of the partition and to initialize a suitable file system, the user can then access. As you may have noticed, the Partition class implements also the BlockDeviceDriver interface from the driver package, described earlier. This is needed because every partition represents an independent volume of the mass storage device. A file system driver should be independent of the location of a partition, hence the partition is responsible for translating the requests of the file system driver according to the starting point, the logical block address of the partition.
+
+\section{The file system package}
+
+The main classes to access the file system and the contents of it, are the previously mention FileSystem class, and the UsbFile interface. These two classes will not be explained, instead we will now have a deeper insight into the implementation of the FAT32 file system.
+
+\begin{figure}[h!]
+\caption{UML class diagram of the FAT32 implementation.}
+\centering
+\includegraphics[scale=1.0]{figures/fat_package}
+\label{figure:fat_package}
+\end{figure}
+
+\subsubsection{FatDirectory and FatFile}
+
+The FatDirectory and FatFile classes are responsible for the directory and file handling. They two important attributes, the ClusterChain and the FatLfnDirectory entry. The FatLfnDirectory contains the long file name of the directory or file, the start cluster and if it is a file the length of a file. It also contains information about the date and time the directory or file was created, last accessed and modified. 
+The ClusterChain is responsible for accessing the data located on the disk. A FatDirectory parses and wirtes the directory entries located in the chain, while the FatFile passes the functionality of reading or writing directly to the user via the UsbFile interface.
+
+\subsubsection{FatLfnDirectory and FatDirectoryEntry}
+
+The FatLfnDirectory provides methods to access a long file name entry. It encapsulates the long file name as well as the actual entry holding important information about the entry, such like the start cluster or file size, and the short name. The FatLfnDirectory entry mostly delegates the things which do not have to do with the long file name, such as the getting or setting the start cluster or file size. to the actual entry which is an attribute of the FatLfnDirectory instance. Both classes and the ShortName class provide convenience for parsing/reading and serializing the data. 
+
+\subsubsection{ClusterChain and FAT}
+
+The ClusterChain handles reading and writing from and to cluster chains giving a certain start cluster. It offers read and write methods to read and write the raw data from and to the desired clusters where they are located on the disk. It also has methods to set and get the length of the cluster chain. the setLength() method, grows and shrinks the cluster chain as needed with the help of the FAT class. When writing to the chain, the cluster chain also will be dynamically grown if needed.
+
+The FAT is responsible for the cluster distribution in the File Allocation Table. The method getChain() returns an array containing all clusters in the chain, including the start cluster at the first position, given a certain start cluster. The FAT class can also allocate new clusters or free unneeded clusters from a chain. When allocating or freeing clusters the FAT class also sets the new information regarding the free clusters and the last allocated cluster hint in the FSInfoStructure.
+
+\subsubsection{Fat32FileSystem and Fat32BootSector}
+
+These two classes are not shown in the UML class diagram \ref{figure:fat_package}, because they do not play an important role in the interaction of the classes. But nevertheless without them the hole system would not work. The Fat32FileSystem class is mainly responsible for initializing the file system meaning reading the boot sector, preparing the FAT and FSInfoStructure. It is also responsible for initializing the root directory and hand it (via a getter) to the user, if desired.
+
+The Fat32BootSector class reads the information of the boot sector of the FAT32 file system, and provides getter for important information the other classes need to access. These information include but are not limited to the cluster and sector size and the start cluster of the root directory.
