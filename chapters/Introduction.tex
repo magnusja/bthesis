@@ -670,7 +670,7 @@ At the beginning of every FAT32 file system the boot sector is located. Table \r
 \centering
 \begin{tabular}{|l|l|l|p{9cm}|}
 \hline\hline
-\textbf{Name} & \textbf{Byte (Offset)} & \textbf{Size} & \textbf{Description}\\ \hline
+\textbf{Name} & \textbf{Offset} & \textbf{Size} & \textbf{Description}\\ \hline
 BPB\_BytsPerSec & 11 & 2 & Count of bytes per one single sector. This is mostly 512 bytes, and other allowed values are 1024, 2048 and 4096. A lot of file system drivers assume that this field is 512 and do not check it! \\ \hline
 BPB\_SecPerClus & 13 & 1 & Count of sectors per cluster. This value must be a power of two greater than 0 and is mostly 8. The cluster size in bytes can be calculated with BPB\_BytsPerSec * BPB\_SecPerClus. \\ \hline
 BPB\_RsvdSecCnt & 14 & 2 & Number of reserved sectors at the beginning of the volume, including the boot sector, preceding the FATs. This value is typically 32. \\ \hline
@@ -699,7 +699,7 @@ The FS Information Structure, also called FSInfo Sector Structure in Microsoft d
 \centering
 \begin{tabular}{|l|l|l|p{9cm}|}
 \hline\hline
-\textbf{Name} & \textbf{Byte (Offset)} & \textbf{Size} & \textbf{Description}\\ \hline
+\textbf{Name} & \textbf{Offset} & \textbf{Size} & \textbf{Description}\\ \hline
 FSI\_LeadSig & 0 & 4 & Fixed value of 41615252h to identify the FSInfo Sector. \\ \hline
 FSI\_Reserved1 & 4 & 480 & Reserved and normally set to zero. \\ \hline
 FSI\_StrucSig & 484 & 4 & Fixed value of 61417272h to identify the FSInfo Sector. \\ \hline
@@ -738,7 +738,7 @@ Directories are located in the data area of a FAT32 file system. The exact locat
 \centering
 \begin{tabular}{|l|l|l|p{9cm}|}
 \hline\hline
-\textbf{Name} & \textbf{Byte (Offset)} & \textbf{Size} & \textbf{Description}\\ \hline
+\textbf{Name} & \textbf{Offset} & \textbf{Size} & \textbf{Description}\\ \hline
 DIR\_Name & 0 & 11 & The short name of the directory or file. \\ \hline
 DIR\_Attr & 11 & 1 & Attributes to determine if this entry describes a directory or a file, etc.. \\ \hline
 DIR\_NTRes & 12 & 1 & Reserved. \\ \hline
@@ -842,7 +842,7 @@ Each entry with a normal short name, can have one more long file name entries pr
 \centering
 \begin{tabular}{|l|l|l|p{9cm}|}
 \hline\hline
-\textbf{Name} & \textbf{Byte (Offset)} & \textbf{Size} & \textbf{Description}\\ \hline
+\textbf{Name} & \textbf{Offset} & \textbf{Size} & \textbf{Description}\\ \hline
 LDIR\_Ord & 0 & 1 & The order of the entry in the sequence of long file name entries. \\ \hline
 LDIR\_Name1 & 1 & 10 & The first five characters of the long file name. \\ \hline
 LDIR\_Attr & 11 & 1 & Must be ATTR\_LONG\_NAME. \\ \hline
@@ -865,14 +865,14 @@ Every long file name entry needs a checksum of the corresponding short name. The
 
 \lstset{language=c}
 \begin{lstlisting}[caption=Calculation of short name checksum \cite{fatgen103}, label=listing:fat_checksum]
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------
 // ChkSum()
 // Returns an unsigned byte checksum computed on an unsigned byte
 // array. The array must be 11 bytes long and is assumed to contain
 // a name stored in the format of a MS-DOS directory entry.
 // Passed: pFcbName Pointer to an unsigned byte array assumed to be 11 bytes long.
 // Returns: Sum An 8-bit unsigned checksum of the array pointed to by pFcbName.
-//------------------------------------------------------------------------------
+//-------------------------------------------------------------------
 unsigned char ChkSum (unsigned char *pFcbName)
 {
     short FcbNameLen;
