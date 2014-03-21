@@ -1,0 +1,29 @@
+\chapter{Summary}
+
+The thesis gives an overview of basic things relating USB in general and how to use the Android Host USB API. A very important part is the description of the USB mass storage class, including the bulk-only transfer and the SCSI transparent command set. The most important SCSI commands were also introduced. After that follows a lot of theory about file system, in detail the FAT32 file system.
+
+After the theoretical part, the developed framework is described, its purpose, general structure and most important things in detail.
+
+The part about the quality management gives a short overview of the interplay of the framework with different devices and Android versions.
+
+\section{Current status}
+
+The Framework works on every device with Android 3.1 or greater which has hardware and software enabled USB host support. Every Android device which meets these requirements should, theoretically, be supported. It currently supports only mass storage devices using the bulk-only transport with the SCSI transparent command set. The device must be formatted with a MBR, which is located at the beginning of the storage. There is no support for other partition tables. Devices completely without an partition table, where the file system directly starts, are also unsupported. The only supported file system currently is FAT32, no other file system is supported, even no other file system of the FAT family. No FAT12, no FAT16!
+
+Despite these limitations the framework has all features which had been determined at the beginning of this thesis\footnote{See the section describing the purpose (\ref{implementation_purpose}) for a summary of the desired requirements and features}. In the source code there are currently some TODOs for minor enhancements, but nothing which compromises the everyday use significantly. Currently there are a lot of debug log messages which may decrease the performance, especially when reading and writing huge chunks of data from or to files.
+
+\section{Conclusion}
+
+Developing Android Apps, is surely much fun. The Android API is well structured and organized and easy to understand. This also takes place when developing advanced applications like this one. 
+
+Very interesting was the aspect of developing low level things like a block device driver and a file system driver in the Java programming language. Normally these things are done in C, and not in a higher level language as Java. But solely relying on Java and strictly avoiding C code was not a problem at any time, Java did the job very well! This shows that Java is also perfectly capable of bringing the object oriented approach to things located deeper in an operating system or the kernel.
+
+The documentation on the USB mass storage class and the SCSI transparent command set is very rare and the documentation I found very complex. It is really not made for beginners and needs a lot of foreknowledge on some topics. Nevertheless after consulting various resources and spending a lot of time reading, the comprehension constantly increased.
+
+\chapter{Outlook}
+
+The developed framework is perfectly usable at its current status. But as always there is room for further development and features. Integrating other block device drivers and file systems are features that come instantly in mind. Maybe someday someone wants to connect his external CD/DVD drive to his Android device?
+
+But not only other block device and file system drivers are possible. Currently the framework has no intelligent caching mechanisms. However it always writes the changes directly to the storage which may sometimes be inefficient. Reading data is at the moment also not very intelligent, the appropriate data is just read from disk, there are no special strategies like reading ahead or guessing what data the user wants to access next. These are all things which are available in every operating system and many people invested a lot of time in efficient strategies for caching, etc. Maybe implementing such techniques to increase the user experience.
+
+But maybe with the next Android version Google adds native support for USB mass storage devices in their stock Android version while making this framework (nearly) obsolete. Some manufacturers already noticed that this feature is pretty useful especially when looking at the newest trend quiting the slot for micro sd cards and only relying on the internal storage of a device. But we will see what Google brings next!

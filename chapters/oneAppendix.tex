@@ -1,4 +1,69 @@
-\chapter{Detailed Descriptions}
+\chapter{Debugging applications via Wifi}
 %\section{Detailed Validation Results}
 \label{chapter:DetailedDescriptions}
-Here come the details that are not supposed to be in the regular text.
+
+When working with the USB features Android provides, an application on the device cannot be debugged as usual using the USB cable and plugging it into the computer. Android fortunately provides an easy solution for that. Android allows debugging over Wifi just like using the USB cable.
+
+To enable debugging over Wifi certain steps have to be done. First connect the device as usual to the computer, then execute the following command using adb:
+
+\lstset{language=bash}
+\begin{lstlisting}[caption=Restart the device in Wifi debug mode., label=listing:wifi_debug]
+localhost:platform-tools mep$ ./adb tcpip 5555
+restarting in TCP mode port: 5555
+\end{lstlisting}
+
+This command forces the device to restart the debugging functionalities in Wifi mode at port 5555. The device can now be used to debug over Wifi. To do this, look up the devices IP address in the Wifi settings of the device\footnote{The computer and the Android device, obviouly, have to be in the same (Wifi-)network}. After that you can easily connect to the device with another adb command:
+
+ \begin{lstlisting}[caption=Connect to the device over Wifi., label=listing:wifi_connect]
+localhost:platform-tools mep$ ./adb connect 192.168.2.108
+connected to 192.168.2.108:5555
+ \end{lstlisting}
+ 
+ After that you can use the device for deploying apps and debugging just as usual in eclipse or your desired environment!
+
+\chapter{Isochronous USB transfers}
+
+The introduction says that Android currently does not support isochronous USB transfers, and gives a reference to the official Android developer documentation\cite{android_usb_constants}. But this does not seem right for every device.
+
+Some devices like the Samsung Galaxy S3 support audio output via a connected USB Audio interface. Audio input seems to be unsupported. This is for example useful for USB headsets or docking stations which can play music. Unfortunately it is not part of the official Android. Nevertheless an application developer has no access to the isochronous transfers, they are hidden in the system and are only used to route the operating systems audio through the connected audio interface and not through the internal speaker.
+
+The company beyerdynamic offers a headphone with an integrated amplifier and an USB audio interface. It is plugged into the Android device over USB. The headphone can only be used with some Android devices which support digital audio data via USB, for example the Samsung Galaxy S3 or S4 or the HTC Butterfly\cite{beyerdynamic}.
+
+\chapter{API difference}
+\label{chapter:api_diff}
+
+The section about the performance test stated that there is an API change between Android API level 18 and lower which affects the framework. In Android API level 18 the class UsbDeviceConnection offers two methods for performing bulk transfers\cite{android_usb_dev_con}:
+
+\lstset{language=Java}
+\begin{lstlisting}[caption=Bulk transfers in UsbDeviceConnection., label=listing:wifi_connectg]
+int bulkTransfer(UsbEndpoint endpoint, byte[] buffer, int offset, int length, int timeout);
+int bulkTransfer(UsbEndpoint endpoint, byte[] buffer, int length, int timeout);
+\end{lstlisting}
+
+As you can see there is one method which accept an offset which represents the index of the first byte where a read or write shall begin. The framework developed in this theses highly makes usage of the ability to specify the offset.
+
+Unfortunately in API level lower 18 only the latter method is available, which always begins reading or writing at byte zero. The only workaround which solves this issue is to create a temporary buffer, perform the bulk read or write and then copy the temporary buffer to the actual buffer at the desired offset. This means there is the overhead of an extra array copy. Listing \ref{listing:workaround_api} shows how this is solved in the framework. For more information look into the source code, especially UsbMassStorageDevice.java.
+
+\begin{lstlisting}[caption=Workaround for the missing method in API level lower 18., label=listing:workaround_api]
+@Override
+public int bulkOutTransfer(byte[] buffer, int offset, int length) {
+	if(offset == 0)
+		return deviceConnection.bulkTransfer(outEndpoint, buffer, length, TRANSFER_TIMEOUT);
+	
+	byte[] tmpBuffer = new byte[length];
+	System.arraycopy(buffer, offset, tmpBuffer, 0, length);
+	int result = deviceConnection.bulkTransfer(outEndpoint, tmpBuffer, length, TRANSFER_TIMEOUT);
+	return result;
+}
+
+@Override
+public int bulkInTransfer(byte[] buffer, int offset, int length) {
+	if(offset == 0)
+		return deviceConnection.bulkTransfer(inEndpoint, buffer, length, TRANSFER_TIMEOUT);
+	
+	byte[] tmpBuffer = new byte[length];
+	int result = deviceConnection.bulkTransfer(inEndpoint, tmpBuffer, length, TRANSFER_TIMEOUT);
+	System.arraycopy(tmpBuffer, 0, buffer, offset, length);
+	return result;
+}
+\end{lstlisting}

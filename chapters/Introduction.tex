@@ -595,7 +595,7 @@ A partition table holds the information needed to identify a handle the differen
 
 \subsubsection{The Master Boot Record}
 
-The MBR occupies 512 bytes at the beginning (LBA zero) of the medium. The first 446 bytes can store executable code the BIOS executes when the PC is booting. The executable code is then responsible for booting from an bootable partition. Beginning with byte 446 the partition table starts. There is place for up to four different partition table entries. The last two bytes are the boot signature which identify the MBR. Byte 510 must be 55h and byte 511 must be AAh.
+The MBR occupies 512 bytes at the beginning (LBA zero) of the medium. The first 446 bytes can store executable code the BIOS executes when the PC is booting. The executable code is then responsible for booting from an bootable partition. Beginning with byte 446 the partition table starts. There is place for up to four different partition table entries. The last two bytes are the boot signature which identify the MBR. Byte 510 must be 55h and byte 511 must be AAh\cite{fat_paul}.
 
 Since there is only place for four partition table entries a disk formatted with the MBR normally could only have up to four different partitions, called primary partitions. But there is also a solution for that, called extended partitions. An extended partition has its own partition table enclosed by the extended boot record (EBR). The partition table entry in the MBR then points to the EBR which is followed by the extended partition. An EBR can contain one additional entry for an extended partition, thus there is theoretically no limit to the number of extended partitions\cite{usb_ms_jan}.
 
@@ -608,7 +608,7 @@ Since there is only place for four partition table entries a disk formatted with
 0 & 1 & Boot Indicator, 00h for non bootable partition, 80h for bootable partition \\ \hline
 1 & 1 & CHS addressing \\ \hline
 2 & 2 & CHS addressing \\ \hline
-4 & 1 & Partition Type \\ \hline
+4 & 1 & Partition Type\footnote{\url{http://en.wikipedia.org/wiki/Partition_type}} \\ \hline
 5 & 1 & CHS addressing \\ \hline
 6 & 2 & CHS addressing \\ \hline
 8 & 4 & LBA of the first sector \\ \hline
