@@ -1,65 +1,63 @@
 \chapter{Introduction}
 \label{chapter:Introduction}
 
+Since Android 3.1 a lot of Android devices come with USB host support (USB On the go). That means a normal Android tablet or phone can not only act as an USB client when connected to a computer. It can also act as an USB host for peripherals by powering the bus with the needed 5 Volt and changing into an USB host mode which enables enumeration of connected USB devices\cite{android_usb_host}. Android currently supports interrupt, bulk and control transfers\footnote{Isochronous transfers are currently unsupported\cite{android_usb_constants}}. That means nearly every USB device can, theoretically, be used with an Android device\footnote{Webcams or Audio devices mostly use isochronous transfers and can thus not be used at the moment}. The Android host API easily allows to communicate with connected USB devices, meaning you can write your own high level USB driver in Java.
 
+Whereby the idea of connecting a USB mass storage device like USB flash drives or external HDDs is not far-fetched. Especially when you look at recent occurrences where a lot of devices miss a slot for external SD-Cards and only offer a solid internal storage. Unfortunately the stock Android comes without support for USB storage devices. That means when you are connecting your mass storage device to your Android phone, nothing will happen. You can not access the data via a file manager or something similar. On rooted devices this is possible because the alternative Android ROMs provide support for it. But with the Android USB Host API it should also be possible to access such devices without rooting the device and flashing an alternative ROM. The only thing you have to do is to implement the low level USB communication via eg. bulk transfers and the abstraction of directories and files via a file system.
 
-Since Android 3.1 a lot of Android devices come with USB host support (USB on the go). That means a normal Android tablet or phone can not only act as a USB client when connected to a computer. It can also act as a USB host for peripherals by powering the bus with the needed 5 Volt and changing into a USB host mode and enumerating connected USB devices\cite{android_usb_host}. Android currently supports interrupt, bulk and control transfers\footnote{Isochronous transfers are currently unsupported\cite{android_usb_constants}}. That means nearly every USB device can, theoretically, be used with an Android device\footnote{Webcams or Audio devices mostly use isochronous transfers and can thus not be used at the moment}. The Android host API easily allows to communicate with connected USB devices, meaning you can write your own high level USB driver in Java.
+Currently there are two applications in the Google Play Store which allow accessing mass storage devices without root rights! First there is a plugin for the Total Commander called \textit{USB-Stick Plugin-TC}. The plugin extends the Total Commander application by USB mass storage access. It currently supports FAT12, FAT16, FAT32 exFAT and NTFS (read only). There is a free trial version available. The second application is called \textit{Nexus Media Importer}. It supports FAT16, FAT32 and NTFS (also read only). There is no free trial version available. In general both apps support USB sticks, external HDDs and card readers.
 
-Thus the idea of connecting a USB mass storage device like USB sticks or external HDDs is not that far away. Especially when you look at recent occurrences where a lot of devices miss a slot for external SD-Cards and only offer a solid internal storage. Unfortunately the stock Android comes without support for USB storage devices. That means when you are connecting your mass storage device nothing will happen. You can not access the data via a file manager or something similar. On rooted devices this is possible because the alternative Android ROMs provide support for it. But with the Android USB Host API it should also be possible to access such devices with out rooting the device and flashing an alternative ROM. The only thing you have to do is to implement the low level USB communication via eg. bulk transfers and the abstraction of directories and files via a file system. This can of course also be done in Java and not only in plain C.
-
-Currently there are two applications in the Google Play Store which allow accessing mass storage devices without root rights! First there is a plugin for the Total Commander called USB-Stick Plugin-TC. The plugin extends the Total Commander application by USB mass storage access. It currently supports FAT12, FAT16, FAT32 exFAT and NTFS (read only). There is a free trial version available. The second application is called Nexus Media Importer. It supports FAT16, FAT32 and NTFS (also read only). There is no free trial version available. In general both apps support USB sticks, external HDDs and card readers.
-
-The problem both applications have is that there is no solution to access the mass storage from other apps. That means all accessed data has to be cached and copied to the internal storage before any other app can access it. These limitations are annoying but it seems that they are impossible to overcome.
+The problem both applications have is that there is no solution to access the mass storage from other apps. That means all accessed data has to be cached and copied to the internal storage before any other app can use it. These limitations are annoying but it seems that they are impossible to overcome.
 
 Both applications are proprietary and thus do not offer the ability to look into and change the source code. Therefore an open source Android Framework for accessing mass storage devices is developed in this bachelor thesis. The license is the very liberal Apache License, Version 2.0, Android is also licensed under.
 
-Due to the same license it would be possible that Google integrates this solution into the official Android. Indeed there are some disadvantages which makes the integration unlikely. First all needed things, like file systems (eg. FAT32) or the SCSI transparent command set, for mounting USB mass storage are already implemented in the underlying Linux kernel. Google just deactivated the support for it. Next with our solution only apps which use our framework can access USB storage devices. It would be much nicer if the connected devices would be mounted in the normal unix file system like sd cards. For example under /mnt/usbstick0. This would make it possible for other apps easily access data from USB mass storage without extra changes to the application. Due to this I think that is very unlikely that Google will integrate this framework into the official Android!
- 
+Due to the same license it would be possible that Google integrates this solution into the official Android. Indeed there are some disadvantages which make the integration unlikely. First of all, necessary things, like file systems (eg. FAT32) or the SCSI transparent command set, for mounting USB mass storage are already implemented in the underlying Linux kernel. Google just deactivated the support for it. Next, with our solution only apps which use our framework can access USB storage devices. It would be much nicer if the connected devices would be mounted in the normal unix file system like SD-cards. For example under \textit{/mnt/usbstick0}. This would make it possible for other apps to easily access data from USB mass storage without extra changes to the application. Due to these reasons I think, it is very unlikely that Google will integrate this framework into the official Android. If they want to support mounting USB mass storage devices, they will enable support for it in the kernel and mount the devices in the normal file system, like some manufacturers (eg. Samsung) already do.
+
 \chapter{Basics about USB}
 
-USB means universal serial bus interface and is a serial bus system to connect a computer with external devices. The first version was introduced by Intel and now the specification is done by the USB Implementers Forum (USB-IF). The USB-IF is a corporation founded by various companies which work non-profit on the USB specification. In USB there exists one USB host controller (eg. computer) which initiates the connection and communication and multiple clients (slaves). The client only sends data when the host asks for it. The USB host is responsible for powering the connected client, thus an external power source is only in some special cases necessary.
+USB means Universal Serial Bus and is a serial bus system to connect a computer to external devices. The first version was introduced by Intel and now the specification is done by the USB Implementers Forum (USB-IF). The USB-IF is a corporation founded by various companies which work non-profit on the USB specification. In USB commutation there is one device one called USB host controller (eg. computer) which initiates the connection and communication and multiple clients (slaves). The client only sends data when the host asks for it. The USB host is responsible for powering the connected client, thus an external power source is only necessary in some special cases\cite{wiki_usb}.
 
 \section{Client device hierarchy}
 
-A USB client can be structured in four different USB descriptors:
+A USB client is structured into four different USB descriptors:
 
 \begin{itemize}
-\item Device
-\item Configuration
-\item Interface
-\item Endpoint
+\item Device descriptor
+\item Configuration descriptor
+\item Interface descriptor
+\item Endpoint descriptor
 \end{itemize}
 
-The device descriptor represents the USB device as a hole device which is connected to the USB bus. This can be for example a loud speaker with volume control buttons.\\
+The device descriptor represents the USB device as a hole device which is connected to the USB bus. This can, for example be a loud speaker with volume control buttons.\\
 The configuration descriptor represents the current state of the USB device. This can for example be standby or active.\\
-An USB Interface descriptor describes every logical device which belongs to the USB device. Often USB devices consist of multiple logical device units. For example a loud speaker is the first logical device and the control buttons to adjust the volume are the second logical device.\\
-Lastly there are the endpoint descriptors which represent unidirectional communication pipes. This is where the actual communication happens. The other descriptors are only to describe the USB device. Endpoints can be of type IN (device to host) or OUT (host to device). Additional tehre are four different types of endpoints to fit different requirements when communicating.\\
+An USB Interface descriptor describes every logical device which belongs to the USB device. Often USB devices consist of multiple logical device units. For example a loud speaker could consist of the speakers as a device and buttons to control the volume. \\
+Lastly there are the endpoint descriptors which represent unidirectional communication pipes. This is where the actual communication happens. Endpoints can either be of type IN (device to host) or OUT (host to device). Additional there are four different types of endpoints, to fit the different requirements of communication\cite{free_usb}.\\
 
 \section{Endpoints}
 
 Every USB device has different requirements towards the underlying communication pipe. To satisfy the different needs the USB protocol offers four different types of communication (endpoints).
 
-Control endpoints are used to configure the device and retrieve status information. These transfers are typically very small. Every device has a control endpoint called endpoint 0 which plays an important role at insertion time.
+Control endpoints are used to configure the device and retrieve status information. These transfers are typically very small. Every device has a control endpoint called endpoint 0 which plays an important role at insertion time\cite{free_usb}.
 
 Interrupt transfers carry a small amount of data to the host every time the host asks for it. This happens at a fixed rate resulting in a fixed and guaranteed bandwidth. These transfers are used by Human interface devices (eg. mouse, keyboard, gamepads) which need a low latency and a low packet size.
 
-Next there are bulk endpoints. These are useful when the amount of data transferred varies often and happens infrequently. The remaining bandwidth the bus provides is used. Hence there is no guarantee on bandwidth or latency. However bulk transfers offer consistent data transfers, meaning that no data is lost. Typically used for printers, network or mass storage devices. Everywhere where data loss is unacceptable and no guaranteed bandwidth is needed.
+Next there are bulk endpoints. These are useful when the amount of data transferred often varies and happens infrequently. The remaining available bandwidth the bus offers is used. Hence there is no guarantee on bandwidth or latency. However bulk transfers offer consistent data transfers, meaning that no data is lost. They are typically used for printers, network or mass storage devices. Everywhere where data loss is unacceptable and no guaranteed bandwidth is needed.
 
-Finally there are the isochronous transfers. They offer a guaranteed bandwidth while resigning consistency. The guaranteed bandwidth is mostly as fast as possible and valuable for real time transfers (eg. audio or video). Mostly these transfers are used for Webcams or Audio devices (eg. external audio cards/audio interfaces).
+Finally there are the isochronous transfers. They offer a guaranteed bandwidth while resigning consistency. The guaranteed bandwidth is mostly as fast as possible and valuable for real time transfers (eg. audio or video). Mostly these transfers are used for Webcams or Audio devices (eg. external audio cards/audio interfaces)\cite{free_usb}.
 
 \section{USB on the go}
 
-As already mentioned in the USB communication there is always a host (master) and a client (device). The host initiates the communication and acts as a master. That means the client is not allowed to send data at anytime, it can only send data when the host explicitly asks to do so! The client is only able to signal that it requires attention. Then the host must react and ask for receiving data. When connecting a smartphone or tablet to the computer the computer acts as the host and the smartphone as the client device. That means the smartphone normally acts as a client device and not as the USB host. In our constellation, however, it has obviously to act as a host. 
+As already mentioned, in USB communication there is always a host (master) and a client (device). The host initiates the communication and acts as a master. That means the client is not allowed to send data at anytime, it can only send data when the host explicitly asks to do so! The client is only able to signal that it requires attention. Then the host must react and ask for receiving data. When connecting a smartphone or tablet to the computer the computer acts as the host and the smartphone as the client device. That means the smartphone normally acts as a client device and not as the USB host. In our constellation, however, it has obviously to act as a host. 
 
-For that reason the USB-IF developed the USB on the go (USB OTG) feature in 2001. It is part of the USB 2.0 specification. This feature allows a USB device to act as a client or either a host depending on the present situation. To use the USB OTG mode a special USB OTG adapter is needed. This is necessary for two reasons. A priori for signaling that the smartphone should now act as a host and not as usual as a client and secondly because most smartphones and tables do not provide a normal USB port of type A. Instead they offer a mini (older devices) or micro port of type A and B. 
+For that reason the USB-IF developed the USB On the go (USB OTG) feature in 2001. It is part of the USB 2.0 specification\cite{wiki_usb}. This feature allows a USB device to act as a client or either a host depending on the present situation. To use the USB OTG mode a special USB OTG adapter is needed. This is necessary for two reasons. A priori for signaling that the smartphone should now act as a host and not as usual as a client and secondly because most smartphones and tables do not provide a normal USB port of type A. Instead they offer a mini (older devices) or micro port of type Mini-A or Micro-B\cite{wiki_usb_otg}. 
 
 \chapter{USB on Android}
 
-As we already know with Android 3.1 Honeycomb Google added USB features. There are two different modes Android keeps under control. The already mentioned Host support and a special USB Accessory mode\cite{android_usb_accessory}. The Accessory Mode is special and only available on Android. It is supposed to develop for example audio docking stations where the dock is the USB host and powers the Android device. The Android device is the client and can for example charge itself and play music through the docking station. The USB Accessory mode is also backported to Android 2.3.4\cite{android_usb_accessory}. For our purpose we solely rely on the USB host functionality.
+As we already know with Android 3.1 Honeycomb Google added USB features to the Android OS. There are two different modes Android keeps under control. The already mentioned Host support and a special USB Accessory mode. The Accessory Mode is special and only available on Android. It is supposed to develop USB host hardware specifically designed for Android devices, where accessory is the USB host and powers the Android device\cite{android_usb_accessory}. The Android device is the client and can for example charge itself and interact with the hardware (eg. playing music through external speakers). The USB Accessory mode is also backported to Android 2.3.4\cite{android_usb_accessory}. For our purpose we solely rely on the USB host functionality.
 
 \section{USB Host API}
 
-On Android there exist a few classes to enumerate, connect to and communicate with connected USB devices. Table \ref{table:host_api} gives an overview of the classes which can be found in the package \textit{android.hardware.usb}.
+On Android there exist classes to enumerate, connect to and communicate with connected USB devices. Table \ref{table:host_api} gives an overview of the classes which can be found in the package \textit{android.hardware.usb}.
 
 \begin{table}[ht]
 \caption{USB host APIs \cite{android_usb_host}}
@@ -100,7 +98,7 @@ for(UsbDevice device : usbManager.getDeviceList().values()) {
 }
 \end{lstlisting}
 
-Accessing the UsbInterface and the UsbInterface is also straight forward. The UsbDevice has a method to get the interface and the UsbInterface has a method to get the endpoint count on the other hand. Both classes have a method to get the interface resp. endpoint at an integer index. Listing \ref{listing:interface_endpoint} illustrates the process.
+Accessing the UsbInterface and the UsbEndpoint is also straight forward. The UsbDevice has a method to get the desired interfaces and the UsbInterface has a method to get the desired endpoints on the other hand. Listing \ref{listing:interface_endpoint} illustrates the process.
 
 \begin{lstlisting}[caption=Accessing UsbInterface and UsbEndpoint, label=listing:interface_endpoint]
 UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
@@ -122,14 +120,14 @@ for(UsbDevice device : usbManager.getDeviceList().values()) {
 }
 \end{lstlisting}
 
-While looping through the devices you can easily check if any device fits your needs. UsbDevice and UsbInterface have methods to get the class, subclass and the protocol.The UsbEndpoint class has methods to get the type, the direction and other attributes of the corresponding endpoint. The UsbDevice also offers methods to get the vendor and product ID of the connected device.
+While looping through the devices you can easily check if any device fits your needs. UsbDevice and UsbInterface have methods to get the class, subclass and the protocol of the device, resp. the interface.The UsbEndpoint class has methods to get the type, the direction and other attributes of the corresponding endpoint. The UsbDevice also offers methods to get the vendor and product ID of the connected device.
 
 \section{Requesting permission for communication}
 \label{section:request_permission}
 
-After discovering a suitable device Android requires the user to accept the communication between an application and the USB device first. To do that you have to explicitly request the permission to communicate with the USB device. A dialog then is shown to the user asking for permission where the user can click okay or cancel. For that the UsbManager offers a method called requestPermission which takes a UsbDevice and a PendingIntent as parameter. The PendingIntent in this case is a Broadcast which can be received via registering a BroadcastReceiver with a specific IntentFilter.
+After discovering a suitable device Android requires the user to accept the communication between an application and the USB device first. To do that you have to explicitly request the permission to communicate with the USB device. A dialog is shown to the user asking for permission where the user can click okay or cancel. For that the UsbManager offers a method called requestPermission which takes a UsbDevice and a PendingIntent as parameter. The PendingIntent in this case is a Broadcast which can be received via registering a BroadcastReceiver with a specific IntentFilter.
 
-Listing \ref{listing:permission_broadcast} shows how a BroadcastReceiver for receiving notifications about the permission can look like. First the the intent action is validated, this step is only needed if the BroadcastReceiver should receive multiple different actions. In this example this is not the case. After that the UsbDevice can be accessed via the an extra of the intent. Another extra of the intent is the state of the permission. If it is granted the extra is true and it is okay to communicate with the device.
+Listing \ref{listing:permission_broadcast} shows how a BroadcastReceiver, for receiving notifications about the permission, can look like. First the the intent action is validated, this step is only needed if the BroadcastReceiver should receives multiple different actions. In this example this is not the case. After that the UsbDevice can be accessed via the an extra of the intent. Another extra of the intent is the permission state. If it is granted the extra is true and it is okay to communicate with the device.
 
 \begin{lstlisting}[caption=Permission BroadcastReceiver \cite{android_usb_host}, label=listing:permission_broadcast]
 private static final String ACTION_USB_PERMISSION =
@@ -163,7 +161,7 @@ IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
 registerReceiver(mUsbReceiver, filter);
 \end{lstlisting}
 
-The last step consists of requesting the permission with the help of the UsbManager:
+The last step consists of requesting the permission with using the UsbManager:
 
 \begin{lstlisting}[caption=Register the BroadcastReceiver \cite{android_usb_host}, label=listing:request_permission]
 UsbDevice device;
@@ -174,7 +172,7 @@ mUsbManager.requestPermission(device, mPermissionIntent);
 
 \section{Communication}
 
-After succeeding all neccessary steps to set up the device, finally, communicating is possible. To do so we have to open the desired device and retrieve an UsbDeviceConnection. The class UsbDeviceConnection offers a method to claim a certain UsbInterface. After that communication is possible via the UsbDeviceConnection. It offers methods like bulkTransfer or controlTransfer.
+After succeeding all necessary steps to set up the device, finally, communication is possible. To do so we have to open the desired device and retrieve an UsbDeviceConnection. The class UsbDeviceConnection offers a method to claim a certain UsbInterface. After that communication is possible via the UsbDeviceConnection. It offers methods like bulkTransfer or controlTransfer.
 
 \begin{lstlisting}[caption=Communicating with a connected device \cite{android_usb_host}, label=listing:communication]
 private Byte[] bytes
@@ -192,7 +190,7 @@ Listing \ref{listing:communication} above uses, for simplicity reasons, the firs
 
 \section{Tearing down the communication}
 
-When the communication between the Android App and the USB device is done, the communication has to be shut down. This is done by releasing the interface and closing the connection. Listing \ref{listing:closing_communication} gives a hint about how to do that.
+When the communication between the Android application and the USB device is done, it has to be shut down. This is done by releasing the interface and closing the connection. Listing \ref{listing:closing_communication} gives a hint about how to do that.
 
 \begin{lstlisting}[caption=Closing communication, label=listing:closing_communication]
 public void close() {
@@ -244,7 +242,7 @@ registerReceiver(mUsbReceiver, filter);
 
 \subsection{Via AndroidManifest.xml}
 
-If an application wants to get notified about of an attached USB device this can also happen in the AndroidManifest.xml. This has the advantage that the application does not have to be started before. In fact it will be started when a desired USB device is connected. The user is then asked if he wants to start the application which can handle the attached device. The next benefit is that the step of requesting described in \ref{section:request_permission} the permission is not required because the user already gave his consent by allowing the application to start.
+If an application wants to get notified about the attachment of an USB device this can also happen in the AndroidManifest.xml. This has the advantage that the application does not have to be started before. In fact it will be started when a desired USB device is connected. The user is then asked if he wants to start the application which can handle the attached device. The next benefit is that the step of requesting permission, described in \ref{section:request_permission}, is not required because the user already gave his consent by allowing the application to start.
 
 As a plus you can specify a device filter which allows your application to get notified only if an appropriate device was attached. You can specify following attributes\cite{android_usb_host}:
 
@@ -267,7 +265,7 @@ Here is an example how a device filter could look like:
 </resources>
 \end{lstlisting}
 
-This resource file should be located at \textit{res/xml/device\_filter.xml} in the project directory\cite{android_usb_host}. This device filter can then be used in the AndroidManifest.xml, which shows Listing \ref{listing:manifest}.
+This resource file should be located at \textit{res/xml/device\_filter.xml} in the project directory\cite{android_usb_host}. The device filter can then be used in the AndroidManifest.xml, like in Listing \ref{listing:manifest}.
 
 \begin{lstlisting}[caption=AndroidManifest.xml\cite{android_usb_host}, label=listing:manifest]
 <manifest ...>
@@ -288,7 +286,7 @@ This resource file should be located at \textit{res/xml/device\_filter.xml} in t
 </manifest>
 \end{lstlisting}
 
-The intent filter for the action uses again the USB\_DEVICE\_ATTACHED string like when using a BroadcastReceiver. But note that this time no broadcast is sent, an activity is started. The minimum sdk version is set to 12 here, because on lower API levels the USB API is not available. The manifest also contains a uses-feature entry, because not all Android devices guarantee to support the USB host feature\cite{android_usb_host}.
+The intent filter for the action uses again the USB\_DEVICE\_ATTACHED string, like when using a BroadcastReceiver. But note that this time no broadcast is sent, an activity is started. The minimum sdk version is set to 12 here, because on lower API levels the USB API is not available. The manifest also contains a uses-feature entry, because not all Android devices guarantee to support the USB host feature\cite{android_usb_host}.
 
 \chapter{USB Mass storage class}
 
