@@ -13,6 +13,10 @@ Both applications are proprietary and thus do not offer the ability to look into
 
 Due to the same license it would be possible that Google integrates this solution into the official Android. Indeed there are some disadvantages which make the integration unlikely. First of all, necessary things, like file systems (eg. FAT32) or the SCSI transparent command set, for mounting USB mass storage are already implemented in the underlying Linux kernel. Google just deactivated the support for it. Next, with our solution only apps which use our framework can access USB storage devices. It would be much nicer if the connected devices would be mounted in the normal unix file system like SD-cards. For example under \textit{/mnt/usbstick0}. This would make it possible for other apps to easily access data from USB mass storage without extra changes to the application. Due to these reasons I think, it is very unlikely that Google will integrate this framework into the official Android. If they want to support mounting USB mass storage devices, they will enable support for it in the kernel and mount the devices in the normal file system, like some manufacturers (eg. Samsung) already do.
 
+\subsubsection{Numbers in this thesis}
+
+There are a lot of numbers in this thesis. If the number has a trailing 'h', for example 08h, this number shall be interpreted as a hex number. Numbers without this 'h' shall be interpreted as decimal numbers.
+
 \chapter{Basics about USB}
 
 USB means Universal Serial Bus and is a serial bus system to connect a computer to external devices. The first version was introduced by Intel and now the specification is done by the USB Implementers Forum (USB-IF). The USB-IF is a corporation founded by various companies which work non-profit on the USB specification. In USB commutation there is one device one called USB host controller (eg. computer) which initiates the connection and communication and multiple clients (slaves). The client only sends data when the host asks for it. The USB host is responsible for powering the connected client, thus an external power source is only necessary in some special cases\cite{wiki_usb}.
@@ -290,15 +294,15 @@ The intent filter for the action uses again the USB\_DEVICE\_ATTACHED string, li
 
 \chapter{USB Mass storage class}
 
-Most USB devices are very similar. To reduce development effort and allow OS designers offering generic drivers for a great range of different devices a lot of device types are standardized. These different types are called classes in USB. There are for example standardizations for printers, USB hubs, Audio or Video Devices, Human Interface devices and mass storage devices. We will now concentrate on the mass storage class.
+Most USB devices are very similar. To reduce development effort and allow OS designers offering generic drivers for a great range of different devices a lot of device types are standardized. These different types are called classes in USB. There are for example standardizations for printers, USB hubs, Audio or Video Devices, Human Interface devices and mass storage devices\cite{usb_classes}. We will now concentrate on the mass storage class.
 
-Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. Note that the mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device. Reading and writing in this case does not necessarily mean reading or writing on the actual storage medium, but we will see that later on.
+Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. Note that the mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device\cite{usb_ms_jan}. Reading and writing in this case does not necessarily mean reading or writing on the actual storage medium, but we will see that later.
 
-There are several sources regarding the mass storage class. It exists the bulk-only transport mechanism which is the most popular one. All newer devices follow these standard. The there is the Control/Bulk/Interrupt (CBI) standard and the UFI Command specification, which are no longer important. In the end the are some mechanisms to allow booting from removable media. We will concentrate on the bulk-only transport short BBB.
+There are two different types regarding the mass storage class. There is the bulk-only transport (BBB) mechanism which is the most popular one. All newer devices follow these standard. Then there is the Control/Bulk/Interrupt (CBI) standard which is no longer important, because the USB-IF recommends using the BBB approach\cite{usb_ms_jan}.
 
 \section{Bulk-only Transport}
 
-Unlike the name suggests there are two control requests in the BBB specification. The first one is a reset request to make the device becoming ready for the next command. The second is used to get the maximum LUN (Get Max LUN request). This requests tells about the number of standalone logical units the mass storage device supports.
+Unlike the name suggests there are two control requests in the BBB specification. The first one is a reset request to make the device becoming ready for the next command. The second is used to get the maximum LUN (Get Max LUN request). This requests tells about the number of standalone logical units the mass storage device supports\cite{usb_ms_jan}.
 
 Like said before the interface class has to be set to 08h for the mass storage class. The subclass of the interface descriptor can have different values and specifies the supported protocols used to read and write data to the mass storage. Table \ref{table:subclass} gives an overview of the different protocol.
 
@@ -321,12 +325,12 @@ For our purpose the SCSI transparent command set is the most important one, we w
 
 \section{SCSI transparent command set}
 
-Every SCSI command the host sends to the client is enclosed by a so called Command Block Wrapper (CBW). Sending this CBW is always the first thing when host and device are communicating. After that raw data can be transferred, depending on the command. Some commands do not need the data transfer phase. This data can either be from host to device or vice versa. In the last step the client device sends a Command Status Wrapper (CSW) to the host to inform about any failures or success.
+Every SCSI command the host sends to the client is enclosed by a so called Command Block Wrapper (CBW). Sending this CBW is always the first thing when host and device exchange data. After transmitting the CBW, raw data can be transferred. The direction of that data can either be from the host to the device or vice versa. In this document, from now on, this phase is called the transport or transfer phase. Some commands do not need the data transfer phase. In the last step the client device sends a Command Status Wrapper (CSW) to the host to inform about any failures or success.
 
 The CWB is always 31 bytes long including the enclosing SCSI command. The host sends it through the OUT endpoint to the device. Following table \ref{table:cbw} illustrates the CBW:
 
 \begin{table}[ht]
-\caption{Command Block Wrapper \cite{usb_ms_jan}}
+\caption{Command Block Wrapper, compare to: \cite{usb_ms_jan}}
 \centering
 \begin{tabular}{|l|l|p{9cm}|}
 \hline\hline
@@ -334,7 +338,7 @@ The CWB is always 31 bytes long including the enclosing SCSI command. The host s
 dCBWSignature & 32 & Fixed value of 43425355h to identify the CBW. \\ \hline
 dCBWTag & 32 & Corresponds to dCSWTag in CSW. \\ \hline
 dCBWDataTransferLength & 32 & The number of bytes which will be sent by the host in the transfer phase or the number of bytes the host expects to receive in the transfer phase. Depends on bmCBWFlags. \\ \hline
-bmCBWFlags & 8 & If bit 7 is set to 0 the data transfer is from host to device, if it is set to 1 from device to host. All other bits are unused. \\ \hline
+bmCBWFlags & 8 & If bit 7 is set to 0 the data transfer is from host to device, if it is set to 1 from device to host. All other bits are unused. If there is no transfer phase this value shall be zero. \\ \hline
 Reserved & 4 & - \\ \hline
 bCBWLUN & 4 & The LUN the command is directed to. \\ \hline
 Reserved & 3 & - \\ \hline
@@ -346,7 +350,7 @@ CBWCB & 128 & The SCSI command the client shall execute. \\ \hline
 
 The dCBWTag is useful to associate the CSW again with the CBW. The device uses the same value stored in the dCBWTag in the dCSWTag of the CSW. If you have multiple CBWs sent and receive multiple CSWs then you can easily find out which CBW corresponds to which CSW.
 
-What data is transferred and how we will see when discussing the different SCSI commands. For now we will just ignore it and have a closer look at the CSW. The CSW is always 13 bytes.
+What data is transferred and how, we will see when discussing the different SCSI commands. For now we will just ignore it and have a closer look at the CSW. The CSW is always 13 bytes.
 
 \begin{table}[ht]
 \caption{Command Status Wrapper \cite{usb_ms_jan}}
@@ -356,23 +360,25 @@ What data is transferred and how we will see when discussing the different SCSI 
 \textbf{Field Name} & \textbf{Bits} & \textbf{Description}\\ \hline
 dCSWSignature & 32 & Fixed value of 53425355h to identify the CSW. \\ \hline
 dCSWTag & 32 & Value of dCBWTag from the sent CBW. \\ \hline
-dCSWDataResidue & 32 & This indicates the number bytes of the data phase the device has not yet processed. Should be 0 if all data has been processed. \\ \hline
+dCSWDataResidue & 32 & This indicates the number bytes in the transport phase the device has not yet processed. Should be 0 if all data has been processed. \\ \hline
 bCSWStatus & 8 & 0 if command successfully passed, 1 if there was an error and 2 on a phase error. \\ \hline
 \end{tabular}
 \label{table:csw}
 \end{table}
 
-The dCSWDataResidue holds the difference between the dCBWDataTransferLength and the number of bytes the device either processed when the host sends data or the number of bytes the device already sent to the host. Mostly all data can be transferred in one data transfer phase meaning dCSWDataResidue is mostly 0.
+\newpage
 
-The bCSWStatus informs about the success of a SCSI command. If this field is 1, the host should issue a SCSI REQUEST SENSE command to get more information about what went wrong\cite{usb_ms_jan}. More on this SCSI command later. If this value is 2 the host should perform a reset recovery. The reset consists of a bulk-only mass storage reset, which is one of the class specific commands and a Clear Feature HALT on the IN and OUT endpoint\cite{usb_ms_jan, usb_mass_bulk}.
+The dCSWDataResidue holds the difference between the dCBWDataTransferLength and the number of bytes the device either processed when the host sends data or the number of bytes the device already sent to the host. Mostly all data can be transferred in one transfer phase meaning dCSWDataResidue is mostly zero.
+
+The bCSWStatus informs about the success of executing the desired SCSI command. If this field is set to one there was an error executing the command. The host should then issue a SCSI REQUEST SENSE command to get more information about what went wrong\cite{usb_ms_jan}. More on this SCSI command later. If this value is two the host should perform a reset recovery. The reset consists of a bulk-only mass storage reset, which is one of the class specific commands and a Clear Feature HALT on the IN and OUT endpoint\cite{usb_ms_jan, usb_mass_bulk}.
 
 The fields in the CBW and CSW are all serialized in little endian style.
 
 \section{SCSI Commands}
 
-The Small Computer System Interface (SCSI) is a standard for connecting and communicating a computer with peripheral devices. It is most commonly used for hard disks and other storage devices, but it can also used for example for scanners\cite{wiki_scsi}. SCSI commands are used to get general information about the connected storage device, but also for reading and writing data from and to it. The USB mass storage class also uses this well established standard.
+The Small Computer System Interface (SCSI) is a standard for communicating between computer and peripheral devices. It is most commonly used for hard disks and other storage devices, but it can also used for example for scanners\cite{wiki_scsi}. SCSI commands are used to get general information about the connected storage device, but also for reading and writing data from and to the device's storage. The USB mass storage class also uses this well established standard.
 
-The are a lot of different SCSI commands and not every device supports every command. To determine which commands a device supports, the host issues a SCSI INQUIRY command. Every device has to support this command and deliver a meaningful response to it. The device discloses with the information included in the response which commands are supported, ie. which standardization it follows. In practice the most common used commands are these\cite{usb_ms_jan}:
+The are a lot of different SCSI commands and not every device supports every command. To determine which commands a device supports, the host issues a SCSI INQUIRY command. Every device has to support this command and deliver a meaningful response to it. The device discloses, with the information included in the INQUIRY response, which commands are supported, ie. which standardization it follows. In practice the most common used commands are these\cite{usb_ms_jan}:
 
 \begin{itemize}
 \item INQUIRY
@@ -383,11 +389,12 @@ The are a lot of different SCSI commands and not every device supports every com
 \item WRITE(10)
 \end{itemize}
 
-Every device should support at minimum these commands! SCSI commands use the big endian style for storing fields bigger than one byte. Every SCSI command starts with the operation code, also called OPCODE (one byte), which identifies the command. The following data then depends on the specific command. The ten after some commands describes the length of the command in bytes. There are for example different READ commands, READ(6), READ(10), READ(12), READ(16) and READ(32)\cite{scsi_seagate}. These commands all differ in their length. This is needed because in the READ(6) command, the logical block address field which is used to address a block is only 16 bit. However devices with a big storage cannot use this command because some parts of the memory cannot be addressed because their address would exceed the range of a 16 bit value. Thus in the READ(10) command, which is the most commonly used, the address field is 32 bit.
+Every device should support at minimum these commands! Every SCSI command starts with the operation code, also called OPCODE (one byte), which identifies the command. The following data then depends on the specific command. The ten after some commands describes the length of the command in bytes. There are for example different READ commands, READ(6), READ(10), READ(12), READ(16) and READ(32)\cite{scsi_seagate}. These commands all differ in their length. This is needed because in the READ(6) command, the logical block address field which is used to address a block is only 16 bit. However devices with a big storage cannot use this command, because the hole storage cannot be addressed with an 16 byte value. Thus in the READ(10) command, which is the most commonly used, the address field is 32 bit.\\\\
+SCSI commands use the big endian style for storing fields bigger than one byte.
 
 \subsection{INQUIRY}
 
-As already mentioned the INQUIRY command is used to get general information about the connected strage device. A host should issue this command at first to determine which commands are supported by the device. The response is the transferred in the data phase between sending the CBW which includes the INQUIRY command and receiving the CSW. The direction of the data phase is from the device to the computer.
+As already mentioned the INQUIRY command is used to get general information about the connected storage device. A host should issue this command to determine the supported SCSI commands by the device. The response to the INQUIRY command is transferred in the transport phase between sending the CBW which includes the INQUIRY command and receiving the CSW. The direction of the transport phase is from the device to the computer.
 
 \begin{table}[ht]
 \caption{INQUIRY command, compare to: \cite{scsi_seagate}}
@@ -408,7 +415,7 @@ The most important fields in the INQUIRY command are the operation code and the 
 
 The Allocation Length field and the Control field are commonly used fields which occur in various SCSI commands\cite{scsi_seagate}.
 
-The response to the standard INQUIRY request shall contain 36 bytes\cite{scsi_seagate}. Bytes 5 until N consists of fields we will not discuss, because they are less important and vendor sepcific information.
+The response to the standard INQUIRY request shall contain 36 bytes\cite{scsi_seagate}. Bytes 5 until N consists of fields we will not discuss, because they are less important or vendor specific information.
 
 \begin{table}[ht]
 \caption{Standard INQUIRY data, compare to: \cite{usb_ms_jan, scsi_seagate}}
@@ -438,7 +445,7 @@ The additional length provides information about how many bytes are remaining in
 
 \subsection{TEST UNIT READY}
 
-This command tests if the storage device is ready to use. This command does not have a data phase. If the device is ready to use the CSW status is set to successful and if not to command failed. In the latter case the host should issue a SCSI REQUEST SENSE, to get information about what is wrong. When the device has removable media, this command can be used to check if a media is currently present\cite{usb_ms_jan}.
+This command tests if the storage device is ready to use. This command does not have a transport phase. If the device is ready to use the CSW status is set to successful and if not to a status indicating failure. In the latter case the host should issue a SCSI REQUEST SENSE, to get information about what went wrong. When the device has removable media, this command can be used to check if a media is currently present\cite{usb_ms_jan}.
 
 \begin{table}[ht]
 \caption{TEST UNIT READY command\cite{scsi_seagate}}
@@ -455,7 +462,7 @@ This command tests if the storage device is ready to use. This command does not 
 
 \subsection{READ CAPACITY}
 
-The READ CAPACITY command is used to determine the storage space of a device. The device tells the host the logical block address (LBA) of the last block and the size in bytes of one single block. The total number of blocks is then LBA of the last block address plus one. The direction of the data phase is from the device to the computer.
+The READ CAPACITY command is used to determine the storage space of a device. The device tells the host the logical block address (LBA) of the last block and the size in bytes of one single block. The total number of blocks is the LBA of the last block address plus one. The direction of the transport phase is from the device to the computer.
 
 \begin{table}[ht]
 \caption{READ CAPACITY(10) command\cite{scsi_seagate}}
@@ -475,7 +482,7 @@ The READ CAPACITY command is used to determine the storage space of a device. Th
 
 If the PMI (partial media indicator) bit is set to zero, the logical block address also must be set to zero. The device then returns information of the last logical block. If the PMI bit is set to one, the Seagate manual on SCSI commands says: "A PMI bit set to one specifies that the device server return information on the last logical block after that specified in the LOGICAL BLOCK ADDRESS field before a substantial vendor specific delay in data transfer may be encountered."\cite{scsi_seagate}
 
-The response transferred in the data phase looks like this:
+The response transferred in the transport phase looks like this:
 
 \begin{table}[ht]
 \caption{READ CAPACITY(10) response, compare to \cite{usb_ms_jan, scsi_seagate}}
@@ -511,7 +518,7 @@ The READ(10) command requests the device to read the specified blocks from the s
 
 For us only the LBA and Transfer Length fields are important. The other fields shall remain zero. They are responsible for example to specify caching behavior or read protection\footnote{Maybe you remember the pen drives which had a physical switch for write protection}.
 
-The WRITE(10) command looks exactly like the READ(10) command except that the operation code is 2Ah and the RDPROTECT field is called WDPROTECT. The direction of the data phase is, of course, now the other way rounf, from computer to the device. Remember that the direction has to be specified correctly in the CBW!
+The WRITE(10) command looks exactly like the READ(10) command except that the operation code is 2Ah and the RDPROTECT field is called WDPROTECT. The direction of the transport phase is, of course, the other way round, from computer to the device. Remember that the direction has to be specified correctly in the CBW!
 
 \subsubsection{Logical Block Address}
 

@@ -12,6 +12,8 @@ The Framework works on every device with Android 3.1 or greater which has hardwa
 
 Despite these limitations the framework has all features which had been determined at the beginning of this thesis\footnote{See the section describing the purpose (\ref{implementation_purpose}) for a summary of the desired requirements and features}. In the source code there are currently some TODOs for minor enhancements, but nothing which compromises the everyday use significantly. Currently there are a lot of debug log messages which may decrease the performance, especially when reading and writing huge chunks of data from or to files.
 
+Currently the SCSI REQUEST SENSE command is missing. That means further information about an unsuccessful command cannot be acquired. But that is not serious problem, because it is very rare that a device cannot successfully execute a command. I had this constellation only when the commands transfered to the device were incorrect and thus the framework had a bug.
+
 \section{Conclusion}
 
 Developing Android Apps, is surely much fun. The Android API is well structured and organized and easy to understand. This also takes place when developing advanced applications like this one. 
