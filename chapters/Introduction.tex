@@ -59,7 +59,7 @@ For that reason the USB-IF developed the USB On the go (USB OTG) feature in 2001
 
 \chapter{USB on Android}
 
-As we already know with Android 3.1 Honeycomb Google added USB features to the Android OS. There are two different modes Android keeps under control. The already mentioned Host support and a special USB Accessory mode. The Accessory Mode is special and only available on Android. It is supposed to develop USB host hardware specifically designed for Android devices, where accessory is the USB host and powers the Android device\cite{android_usb_accessory}. The Android device is the client and can for example charge itself and interact with the hardware (eg. playing music through external speakers). The USB Accessory mode is also backported to Android 2.3.4\cite{android_usb_accessory}. For our purpose we solely rely on the USB host functionality.
+As already mentioned with Android 3.1 Honeycomb Google added USB features to the Android OS. There are two different modes Android keeps under control. The already mentioned Host support and a special USB Accessory mode. The Accessory Mode is special and only available on Android. It is supposed to develop USB host hardware specifically designed for Android devices, where accessory is the USB host and powers the Android device\cite{android_usb_accessory}. The Android device is the client and can for example charge itself and interact with the hardware (eg. playing music through external speakers). The USB Accessory mode is also backported to Android 2.3.4\cite{android_usb_accessory}. The developed framework solely relies on the USB host functionality.
 
 \section{USB Host API}
 
@@ -178,7 +178,7 @@ mUsbManager.requestPermission(device, mPermissionIntent);
 
 \section{Communication}
 
-After succeeding all necessary steps to set up the device, finally, communication is possible. To do so we have to open the desired device and retrieve an UsbDeviceConnection. The class UsbDeviceConnection offers a method to claim a certain UsbInterface. After that communication is possible via the UsbDeviceConnection. It offers methods like bulkTransfer or controlTransfer.
+After succeeding all necessary steps to set up the device, finally, communication is possible. To do so the desired device has to be opened and an UsbDeviceConnection has to be retrieved. The class UsbDeviceConnection offers a method to claim a certain UsbInterface. After that communication is possible via the UsbDeviceConnection. It offers methods like bulkTransfer or controlTransfer.
 
 \begin{lstlisting}[caption=Communicating with a connected device \cite{android_usb_host}, label=listing:communication]
 private Byte[] bytes
@@ -298,7 +298,7 @@ The intent filter for the action uses again the USB\_DEVICE\_ATTACHED string, li
 
 Most USB devices are very similar. To reduce development effort and allow OS designers offering generic drivers for a great range of different devices a lot of device types are standardized. These different types are called classes in USB. There are for example standardizations for printers, USB hubs, Audio or Video Devices, Human Interface devices and mass storage devices\cite{usb_classes}. We will now concentrate on the mass storage class.
 
-Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. Note that the mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device\cite{usb_ms_jan}. Reading and writing in this case does not necessarily mean reading or writing on the actual storage medium, but we will see that later.
+Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. Note that the mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device\cite{usb_ms_jan}. Reading and writing in this case does not necessarily mean reading or writing on the actual storage medium, but this will be described later.
 
 There are two different types regarding the mass storage class. There is the bulk-only transport (BBB) mechanism which is the most popular one. All newer devices follow these standard. Then there is the Control/Bulk/Interrupt (CBI) standard which is no longer important, because the USB-IF recommends using the BBB approach\cite{usb_ms_jan}.
 
@@ -323,7 +323,7 @@ Like said before the interface class has to be set to 08h for the mass storage c
 \label{table:subclass}
 \end{table}
 
-For our purpose the SCSI transparent command set is the most important one, we will learn about it in detail in the next chapter. The RBC is not even implemented in Windows, but in the Linux kernel\cite{usb_ms_jan}. The other protocols refer to other types of storage media we do not want to cover.
+For our purpose the SCSI transparent command set is the most important one, which is explained in the following chapter. The RBC is not even implemented in Windows, but in the Linux kernel\cite{usb_ms_jan}. The other protocols refer to other types of storage media and not covered by this thesis.
 
 \section{SCSI transparent command set}
 
@@ -352,7 +352,7 @@ CBWCB & 128 & The SCSI command the client shall execute. \\ \hline
 
 The dCBWTag is useful to associate the CSW again with the CBW. The device uses the same value stored in the dCBWTag in the dCSWTag of the CSW. If you have multiple CBWs sent and receive multiple CSWs then you can easily find out which CBW corresponds to which CSW.
 
-What data is transferred and how, we will see when discussing the different SCSI commands. For now we will just ignore it and have a closer look at the CSW. The CSW is always 13 bytes.
+What data is transferred and how, will be discussed in the sections about the different SCSI commands. For now it is ignored and the CSW is introduced. The CSW is always 13 bytes.
 
 \begin{table}[ht]
 \caption{Command Status Wrapper \cite{usb_ms_jan}}
@@ -417,7 +417,7 @@ The most important fields in the INQUIRY command are the operation code and the 
 
 The Allocation Length field and the Control field are commonly used fields which occur in various SCSI commands\cite{scsi_seagate}.
 
-The response to the standard INQUIRY request shall contain 36 bytes\cite{scsi_seagate}. Bytes 5 until N consists of fields we will not discuss, because they are less important or vendor specific information.
+The response to the standard INQUIRY request shall contain 36 bytes\cite{scsi_seagate}. Bytes 5 until N consists of fields not discussed here, because they are less important or vendor specific information.
 
 \begin{table}[ht]
 \caption{Standard INQUIRY data, compare to: \cite{usb_ms_jan, scsi_seagate}}
@@ -596,7 +596,7 @@ On USB mass storage devices the most popular file systems are FAT32 and NTFS, be
 
 \subsection{Partition Table}
 
-Before having a closer look at the FAT32 file system we will discuss partition tables. One physical drive can have multiple partitions which operate independent from each other. They can also have different file systems. In Windows for example every partition will get a separate drive letter.
+Before having a closer look at the FAT32 file system, partition tables have to be explained. One physical drive can have multiple partitions which operate independent from each other. They can also have different file systems. In Windows for example every partition will get a separate drive letter.
 
 A partition table holds the information needed to identify a handle the different partitions on the disk. These information include where the partition on the disk starts, ends or how many blocks it occupies and with which file system the partition is formatted. There are two different partition tables most commonly used today. The Master Boot Record (MBR) and the GUID partition table (GPT) which is part of the UEFI standard\cite{wiki_guid}. The Master Boot Record is used in PCs with BIOS and is currently replaced by the GPT in UEFI PCs. On USB mass storage devices mostly the MBR is applicable. 
 
