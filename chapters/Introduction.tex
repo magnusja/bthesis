@@ -292,7 +292,13 @@ This resource file should be located at \textit{res/xml/device\_filter.xml} in t
 </manifest>
 \end{lstlisting}
 
-The intent filter for the action uses again the USB\_DEVICE\_ATTACHED string, like when using a BroadcastReceiver. But note that this time no broadcast is sent, an activity is started. The minimum sdk version is set to 12 here, because on lower API levels the USB API is not available. The manifest also contains a uses-feature entry, because not all Android devices guarantee to support the USB host feature\cite{android_usb_host}.
+The intent filter for the action uses again the USB\_DEVICE\_ATTACHED string, like when using a BroadcastReceiver. But note that this time no broadcast is sent, an activity is started. The minimum sdk version is set to 12 here, because on lower API levels the USB API is not available. The manifest also contains a uses-feature entry, because not all Android devices guarantee to support the USB host feature\cite{android_usb_host}.\\\\
+After that the UsbDevice can be accessed anywhere within the Activity like this:
+
+\lstset{language=Java}
+\begin{lstlisting}[caption={Accessing the UsbDevice in the Activity, compare to\cite{android_usb_host}}, label=listing:access_usb_dev_activity]
+UsbDevice device = (UsbDevice) getIntent().getParcelableExtra(UsbManager.EXTRA_DEVICE);
+\end{lstlisting}
 
 \chapter{USB Mass storage class}
 
