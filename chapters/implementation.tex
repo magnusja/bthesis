@@ -15,19 +15,19 @@ The developed Android Framework for accessing USB mass storage devices shall mee
 
 The Framework shall at least support the bulk only transfer mass storage devices, which are using the SCSI transparent command set. It shall support devices which are formatted with the MBR partition table and the FAT32 file system. Despite the framework a simple example application shall also be developed to test and demonstrate the framework. The framework and the example application are publicly available at github\footnote{\url{https://github.com/mjdev/libaums}}.
 
-The following parts will describe the framework and the example application, but not every part of the source code is described in detail. If you want to get an insight how the hole things work, you should look into the source code directly, which is also documented.
+The following parts describe the framework and the example application, but not every part of the source code is described in detail. To get an insight how the hole things work, the source code, which is also well documented, should be examined directly.
 
 \subsubsection{Overview}
 \label{implementation_overview}
 
-This sections gives a short overview over the hole framework, in the following chapter important parts of the framework will then discussed in detail.
+This sections gives a short overview over the hole framework, in the following chapter important parts of the framework are then discussed in detail.
 
 The framework and the example application are purely developed in Java because that is Android's main language for developing applications. The framework uses the standard Java API and the Android USB host API to access USB devices. The example application uses the API of the developed framework and the standard Android API for creating user interfaces.
 
 The framework can roughly be structured in three parts, Figure \ref{figure:package} shows a UML package diagram of the framework. The packages in the UML diagram correspond to the Java packages in the source code. Please note that the UML diagrams in this thesis are often simplified and are not always exactly correct.
 
 \begin{figure}[h!]
-\caption{Package overview of the framework.}
+\caption{Package overview of the framework}
 \centering
 \includegraphics[scale=0.9]{figures/package}
 \label{figure:package}
@@ -50,7 +50,7 @@ The fs package contains the code for the FAT32 file system. It needs direct acce
 The UsbMassStorageDevice class is the main entry point for accessing mass storage devices. It provides a static method which returns all available mass storage devices. This method loops through all connected USB devices and checks if the connected device is a valid device following the USB mass storage class. The mass storage devices can then be initialized, via the init() method. The initialization process consists of reading the partition table, creating the corresponding partitions and evaluating the desired file system for each partition.  The available partitions can then easily be accessed via a getter. The close method closes the USB communication and releases the USB Interface.
 
 \begin{figure}[h!]
-\caption{UML class diagram of the UsbMassStorageDevice.}
+\caption{UML class diagram of the UsbMassStorageDevice}
 \centering
 \includegraphics[scale=0.85]{figures/usb_mass_dev}
 \label{figure:mass_dev}
@@ -71,7 +71,7 @@ The FileSystem interface also provides a getter for the volume label, which retu
 The UsbFile interface represents an abstraction for files and directories. Every directory or file is an UsbFile. The root directory returned by the FileSystem interface is also a UsbFile. The UsbFile interface provides various methods to access and modify the contents of a file or directory. For a complete documentation on every method please refer to the javadoc in the source code. Note that some methods only make sense for directory or files, but not both for of them!
 
 \begin{figure}[h!]
-\caption{UML class diagram of the UsbFile interface.}
+\caption{UML class diagram of the UsbFile interface}
 \centering
 \includegraphics[scale=0.85]{figures/usb_file}
 \label{figure:usb_file}
@@ -124,7 +124,7 @@ private void setupDevice() {
 As mentioned previously, the driver package is responsible for handling the low level communication with the block device. It can access the USB device via bulk IN and OUT transfers. Currently only a block device driver for the SCSI transparent command set is available.
 
 \begin{figure}[h!]
-\caption{UML class diagram of the driver package.}
+\caption{UML class diagram of the driver package}
 \centering
 \includegraphics[scale=0.85]{figures/driver_package}
 \label{figure:driver_package}
@@ -153,7 +153,7 @@ In the UML diagram \ref{figure:driver_package} only the SCSI INQUIRY command is 
 The partition package is responsible for handling the partition table on a USB mass storage device. Currently only the MBR partition table is supported. Determining the partition table can be pretty hard, because there is no hint which type of partition table is stored on the device. That means the data at LBA zero has to be read (normally a partition table starts at the beginning of a volume) and it has to be checked if the data represents a valid partition table. Figure \ref{figure:partition_package} illustrates the contents of the partition package. There is again a factory class for creating suitable partition tables, this class currently always creates the MBR partition table.
 
 \begin{figure}[h!]
-\caption{UML class diagram of the partition package.}
+\caption{UML class diagram of the partition package}
 \centering
 \includegraphics[scale=0.85]{figures/partition_package}
 \label{figure:partition_package}
@@ -173,16 +173,16 @@ This class covers the Master Boot Record implementation. It has a static read me
 
 \subsubsection{Partition}
 
-The Partition class was already introduced in the overview section (\ref{implementation_overview}), but this time we will have a closer look at how it interacts with the other classes of the package and the file system package. 
+The Partition class was already introduced in the overview section (\ref{implementation_overview}), but this time the focus lies on the interaction with other classes of the package and the file system package. 
 
-The Partition class has access to the PartitionTableEntry it represents. It uses the information of stored in th entry to determine the starting point (LBA) of the partition and to initialize a suitable file system, the user can then access. As you may have noticed, the Partition class implements also the BlockDeviceDriver interface from the driver package, described earlier. This is needed because every partition represents an independent volume of the mass storage device. A file system driver should be independent of the location of a partition, hence the partition is responsible for translating the requests of the file system driver according to the starting point, the logical block address of the partition.
+The Partition class has access to the PartitionTableEntry it represents. It uses the information of stored in th entry to determine the starting point (LBA) of the partition and to initialize a suitable file system, the user can then access. The Partition class implements also the BlockDeviceDriver interface from the driver package, described earlier. This is needed because every partition represents an independent volume of the mass storage device. A file system driver should be independent of the location of a partition, hence the partition is responsible for translating the requests of the file system driver according to the starting point, the logical block address of the partition.
 
 \section{The file system package}
 
-The main classes to access the file system and the contents of it, are the previously mention FileSystem class, and the UsbFile interface. These two classes will not be explained, instead we will now have a deeper insight into the implementation of the FAT32 file system.
+The main classes to access the file system and the contents of it, are the previously mention FileSystem class, and the UsbFile interface. These two classes are not explained, instead the focus is on a deeper insight into the implementation of the FAT32 file system.
 
 \begin{figure}[h!]
-\caption{UML class diagram of the FAT32 implementation.}
+\caption{UML class diagram of the FAT32 implementation}
 \centering
 \includegraphics[scale=1.0]{figures/fat_package}
 \label{figure:fat_package}
@@ -199,7 +199,7 @@ The FatLfnDirectory provides methods to access a long file name entry. It encaps
 
 \subsubsection{ClusterChain and FAT}
 
-The ClusterChain handles reading and writing from and to cluster chains giving a certain start cluster. It offers read and write methods to read and write the raw data from and to the desired clusters where they are located on the disk. It also has methods to set and get the length of the cluster chain. the setLength() method, grows and shrinks the cluster chain as needed with the help of the FAT class. When writing to the chain, the cluster chain also will be dynamically grown if needed.
+The ClusterChain handles reading and writing from and to cluster chains giving a certain start cluster. It offers read and write methods to read and write the raw data from and to the desired clusters where they are located on the disk. It also has methods to set and get the length of the cluster chain. the setLength() method, grows and shrinks the cluster chain as needed with the help of the FAT class. When writing to the chain, the cluster chain will also be dynamically grown if needed.
 
 The FAT is responsible for the cluster distribution in the File Allocation Table. The method getChain() returns an array containing all clusters in the chain, including the start cluster at the first position, given a certain start cluster. The FAT class can also allocate new clusters or free unneeded clusters from a chain. When allocating or freeing clusters the FAT class also sets the new information regarding the free clusters and the last allocated cluster hint in the FSInfoStructure.
 

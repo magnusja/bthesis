@@ -735,7 +735,7 @@ Every entry of the FAT is 32 bit, with the lower 28 bit representing the cluster
 A series of clusters is called a cluster chain. Every directory or file consists of a specific cluster chain defining the location of the contents of the disk. To follow such a chain, a start cluster is needed. The start cluster of the root directory for example is stored in the boot sector. A FAT32 file system then seeks into the FAT where start cluster is located. In bytes this is 4 * start cluster (Every entry is 32 bit = 4 byte). The value stored at this location is the next cluster in the chain. This is repeated until the value stored is a end of chain mark. This determines the end of a cluster chain. A value above FFFFFF7h is an end of chain mark. A value of zero indicates that the cluster is free and a value of one that the cluster is reserved. A value of FFFFFF7h stands for a bad cluster.
 
 \begin{figure}[h!]
-\caption{Simplified illustration of a FAT and following cluster chain.}
+\caption{Simplified illustration of a FAT and following cluster chains}
 \centering
 \includegraphics{figures/cluster_chain}
 \end{figure}

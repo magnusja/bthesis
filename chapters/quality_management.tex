@@ -45,7 +45,7 @@ Some devices natively support mounting USB mass storage devices without root rig
 
 \subsection{Performance test}
 
-On Android versions lower 4.3 a specific method in the API is not available. It was later added with API level 18. To support older Android versions and overcome the lack, the framework uses a different API call on lower Android versions. This workaround can operate on the performance. To examine this insight towards the performance, the same file is copied from the mass storage to the internal storage, on different Android versions, but on the same device. If you want to learn about the API difference, please refer to appendix \ref{chapter:api_diff}.
+On Android versions lower 4.3 a specific method in the API is not available. It was later added with API level 18. To support older Android versions and overcome the lack, the framework uses a different API call on lower Android versions. This workaround can operate on the performance. To examine this insight towards the performance, the same file is copied from the mass storage to the internal storage, on different Android versions, but on the same device. More information about the API difference, can be found in appendix \ref{chapter:api_diff}.
 
 The file copied is an video file with the size of 155,883,762 bytes, which are approximately 148.6 megabytes. The two devices are Google Nexus 7 tablets and the Android versions are 4.4.2 and 4.2.2. The same USB pen drive was always used for the tests. The file was copied five times on every device, table \ref{table:performance_test} shows the average copy time.
 
@@ -65,7 +65,7 @@ The performance results are pretty interesting because the device with the lower
 
 \subsubsection{Second performance test}
 
-Because of the surprising results I decided to to another test only on the device with Android 4.2.2. The test is exactly as the test above, except that this time in the first test run the offset to write in the buffer is always zero, the second time it is forced to be none zero. That means in second run the workaround is enforced and the buffer has to be copied. Again if you want to learn more about the API difference, refer to appendix \ref{chapter:api_diff}.
+Because of the surprising results I decided to to another test only on the device with Android 4.2.2. The test is exactly as the test above, except that this time in the first test run the offset to write in the buffer is always zero, the second time it is forced to be none zero. That means in second run the workaround is enforced and the buffer has to be copied. Again, more information regarding the API difference, can be found in appendix \ref{chapter:api_diff}.
 
 \begin{table}[ht]
 \caption{Performance test: Average time of copying same file five times on same device}
