@@ -335,7 +335,7 @@ For purpose descirbed in this thesis, the SCSI transparent command set is the mo
 
 Every SCSI command the host sends to the client is enclosed by a so called Command Block Wrapper (CBW). Sending this CBW is always the first thing when host and device exchange data. After transmitting the CBW, raw data can be transferred. The direction of that data can either be from the host to the device or vice versa. In this document, from now on, this phase is called the transport or transfer phase. Some commands do not need the data transfer phase. In the last step the client device sends a Command Status Wrapper (CSW) to the host to inform about any failures or success.
 
-The CWB is always 31 bytes long including the enclosing SCSI command. The host sends it through the OUT endpoint to the device. Following table \ref{table:cbw} illustrates the CBW:
+The CBW is always 31 bytes long including the enclosing SCSI command. The host sends it through the OUT endpoint to the device. Following table \ref{table:cbw} illustrates the CBW:
 
 \begin{table}[ht]
 \caption{Command Block Wrapper, compare to: \cite{usb_ms_jan}}
@@ -456,7 +456,7 @@ The additional length provides information about how many bytes are remaining in
 This command tests if the storage device is ready to use. This command does not have a transport phase. If the device is ready to use the CSW status is set to successful and if not to a status indicating failure. In the latter case the host should issue a SCSI REQUEST SENSE, to get information about what went wrong. When the device has removable media, this command can be used to check if a media is currently present\cite{usb_ms_jan}.
 
 \begin{table}[ht]
-\caption{TEST UNIT READY command\cite{scsi_seagate}}
+\caption{TEST UNIT READY command \cite{scsi_seagate}}
 \centering
 \begin{tabular}{|l|l|}
 \hline\hline
@@ -473,7 +473,7 @@ This command tests if the storage device is ready to use. This command does not 
 The READ CAPACITY command is used to determine the storage space of a device. The device tells the host the logical block address (LBA) of the last block and the size in bytes of one single block. The total number of blocks is the LBA of the last block address plus one. The direction of the transport phase is from the device to the computer.
 
 \begin{table}[ht]
-\caption{READ CAPACITY(10) command\cite{scsi_seagate}}
+\caption{READ CAPACITY(10) command \cite{scsi_seagate}}
 \centering
 \begin{tabular}{|l|l|}
 \hline\hline
@@ -509,7 +509,7 @@ The response transferred in the transport phase looks like this:
 The READ(10) command requests the device to read the specified blocks from the storage and transfer them to the computer. The logical block address included in the command specifies the block where reading shall begin. The transfer length field holds the amount of contiguous blocks that shall be read. The device then transmits the requested data in the data transport phase. The device does not have to care about the actual data, it just transfers it to the host just like it is saved on the storage. Table \ref{table:read_10} shows how the READ(10) command is constructed.
 
 \begin{table}[ht]
-\caption{READ(10) command\cite{scsi_seagate}}
+\caption{READ(10) command \cite{scsi_seagate}}
 \centering
 \begin{tabular}{|l|p{10cm}|}
 \hline\hline
@@ -537,7 +537,7 @@ Every mass storage device is structured in blocks. These blocks have a definite 
 If the device fails executing a SCSI command requested by the computer, an unsuccessful CSW status is set. The computer then knows that something went wrong, but it does not know what went wrong. To get more information about the specific error the host can issue a REQUEST SENSE command, to request the sense data from the device.
 
 \begin{table}[ht]
-\caption{REQUEST SENSE command\cite{scsi_seagate}}
+\caption{REQUEST SENSE command \cite{scsi_seagate}}
 \centering
 \begin{tabular}{|l|l|}
 \hline\hline
@@ -749,7 +749,7 @@ Directories are located in the data area of a FAT32 file system. The exact locat
 \begin{table}[!ht]
 \caption{Fat Directory Entry, compare to: \cite{usb_ms_jan, fatgen103}}
 \centering
-\begin{tabular}{|l|l|l|p{9cm}|}
+\begin{tabular}{|l|l|l|p{8.5cm}|}
 \hline\hline
 \textbf{Name} & \textbf{Offset} & \textbf{Size} & \textbf{Description}\\ \hline
 DIR\_Name & 0 & 11 & The short name of the directory or file. \\ \hline
@@ -853,7 +853,7 @@ Each entry with a normal short name, can have one more long file name entries pr
 \begin{table}[!ht]
 \caption{Fat LFN Directory Entry, compare to: \cite{usb_ms_jan, fatgen103}}
 \centering
-\begin{tabular}{|l|l|l|p{9cm}|}
+\begin{tabular}{|l|l|l|p{8.5cm}|}
 \hline\hline
 \textbf{Name} & \textbf{Offset} & \textbf{Size} & \textbf{Description}\\ \hline
 LDIR\_Ord & 0 & 1 & The order of the entry in the sequence of long file name entries. \\ \hline
