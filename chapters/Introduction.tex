@@ -58,6 +58,7 @@ As already mentioned, in USB communication there is always a host (master) and a
 For that reason the USB-IF developed the USB On the go (USB OTG) feature in 2001. It is part of the USB 2.0 specification\cite{wiki_usb}. This feature allows a USB device to act as a client or either a host depending on the present situation. To use the USB OTG mode, on a smartphone, a special USB OTG adapter is needed. This is necessary for two reasons. A priori for signaling that the smartphone should now act as a host and not as usual as a client and secondly because most smartphones and tables do not provide a normal USB port of type A. Instead they offer a mini (older devices) or micro port of type Mini-A or Micro-B\cite{wiki_usb_otg}. 
 
 \chapter{USB on Android}
+\label{chapter:usb_on_android}
 
 As already mentioned with Android 3.1 Honeycomb Google added USB features to the Android OS. There are two different modes Android keeps under control. The already mentioned Host support and a special USB Accessory mode. The Accessory Mode is special and only available on Android. It is supposed to develop USB host hardware specifically designed for Android devices, where the accessory is the USB host and powers the Android device\cite{android_usb_accessory}. The Android device is the client and can for example charge itself and interact with the hardware (eg. playing music through external speakers). 
 
@@ -385,6 +386,7 @@ The bCSWStatus informs about the success of executing the desired SCSI command. 
 The fields in the CBW and CSW are all serialized in little endian style.
 
 \section{SCSI Commands}
+\label{section:scsi_commands}
 
 The Small Computer System Interface (SCSI) is a standard for communicating between computers and peripheral devices. It is most commonly used for hard disks and other storage devices, but it can also used for example for scanners\cite{wiki_scsi}. SCSI commands are used to get general information about the connected storage device, but also for reading and writing data from and to the device's storage. The USB mass storage class also uses this well established standard.
 

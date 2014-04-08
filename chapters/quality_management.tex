@@ -6,7 +6,7 @@ To ensure the quality of the Framework it has been tested on a wide range of dif
 
 \subsection{Testing criteria}
 
-On every device following things were tested, if they succeed or not:
+On every device following aspects were tested, if they succeeded or not:
 
 \begin{itemize}
 \item Listing contents of directories
@@ -19,14 +19,14 @@ On every device following things were tested, if they succeed or not:
 
 \section{Results}
 
-The following table shows if the tests on the different devices were successful or not.
+Table \ref{table:test_results} shows the test result for the devices which have been tested. If all aspects work properly, the test is successful.
 
 \begin{table}[ht]
 \caption{Test results}
 \centering
-\begin{tabular}{|l|l|l|p{6cm}|}
+\begin{tabular}{|l|l|l|p{5.5cm}|}
 \hline\hline
-\textbf{Device} & \textbf{Android Version} & \textbf{Works} & \textbf{Comments} \\ \hline
+\textbf{Device} & \textbf{Android Version} & \textbf{Success} & \textbf{Comments} \\ \hline
 Archos 101 G9 & 4.0.4 & Yes & Has native support for USB mass storage devices. \\ \hline
 Google Nexus 4 & 4.4.2 & No & Does not have the USB host feature\cite{nexus_4_usb_host}. \\ \hline
 Google Nexus 5 & 4.4 & Yes & - \\ \hline
@@ -41,13 +41,13 @@ Samsung Galaxy S3 & 4.3 & Yes & Has native support for USB mass storage devices.
 
 \subsection{Native support}
 
-Some devices natively support mounting USB mass storage devices without root rights. In this case this was the Samsung Galaxy S3 and the Archos 101 G9. When connecting a mass storage device via the USB OTG adapter to such a device, the device is automatically mounted and can be either accessed with the file manager which came with the device or any third party file manager. On the Archos device the mass storage is mounted under /mnt/ext\_storage.
+Some devices support mounting USB mass storage devices without root rights natively. This was verified for the Samsung Galaxy S3 and the Archos 101 G9. When connecting a mass storage device via the USB OTG adapter to such a device, the mass storage device is automatically mounted and can be either accessed with the file manager which came with the device or any third party file manager. On the Archos device the mass storage is mounted under \textit{/mnt/ext\_storage}.
 
 \subsection{Performance test}
 
-On Android versions lower 4.3 a specific method in the API is not available. It was later added with API level 18. To support older Android versions and overcome the lack, the framework uses a different API call on lower Android versions. This workaround can operate on the performance. To examine this insight towards the performance, the same file is copied from the mass storage to the internal storage, on different Android versions, but on the same device. More information about the API difference, can be found in appendix \ref{chapter:api_diff}.
+On Android versions lower 4.3 a specific method in the API is not available. It was later added with API level 18. To support older Android versions and to overcome this lack, the framework uses a different API call on lower Android versions. This workaround can influence on the performance. To examine the performance, the same file is copied from the mass storage to the internal storage on different Android versions, but on the same device. More information about the API difference, can be found in appendix \ref{chapter:api_diff}.
 
-The file copied is an video file with the size of 155,883,762 bytes, which are approximately 148.6 megabytes. The two devices are Google Nexus 7 tablets and the Android versions are 4.4.2 and 4.2.2. The same USB pen drive was always used for the tests. The file was copied five times on every device, table \ref{table:performance_test} shows the average copy time.
+The file copied was a video file with a size of 155,883,762 bytes, which is approximately 148.6 megabytes. The two devices were Google Nexus 7 tablets with Android versions 4.4.2 and 4.2.2. The same USB pen drive was always used for the tests. The file was copied five times on every device, table \ref{table:performance_test} shows the average copy time.
 
 \begin{table}[ht]
 \caption{Performance test: Average time of copying same file five times on each device}
@@ -61,11 +61,11 @@ The file copied is an video file with the size of 155,883,762 bytes, which are a
 \label{table:performance_test}
 \end{table}
 
-The performance results are pretty interesting because the device with the lower Android version is definitely faster than the newer one. The difference is about ten seconds! The devices behave exactly contrary as assumed. The reason for this is hard to find, maybe the USB Host stack changed very much in these two versions. But this would imply that the newer Android version provides an inferior performance consulting the USB Host support. Another reason could be that installed applications and running services in the background have a huge impact of the performance. This is also an evidence for the difficulty of creating meaningful performance tests on two different devices although they both are of the same model!
+The performance results are pretty interesting because the device with the lower Android version is definitely faster than the one with the newer one. The difference is about ten seconds! The devices behave contrary as assumed. The reason for this is hard to find, maybe the USB Host stack changed not only in this functionality between these two versions. But this would imply that the newer Android version provides an inferior performance consulting the USB Host support. Another reason could be that installed applications and running services in the background have a huge impact on the performance. This is also an evidence for the difficulty of creating reasonable performance tests on two different devices although they both are of the same model!
 
-\subsubsection{Second performance test}
+\subsubsection{Additional performance test}
 
-Because of the surprising results I decided to to another test only on the device with Android 4.2.2. The test is exactly as the test above, except that this time in the first test run the offset to write in the buffer is always zero, the second time it is forced to be none zero. That means in second run the workaround is enforced and the buffer has to be copied. Again, more information regarding the API difference, can be found in appendix \ref{chapter:api_diff}.
+Because of the surprising results I decided to to another test on the device with Android 4.2.2. The test is exactly as the test above, except that this time in the first test run the offset to write in the buffer is always zero, the second time it is forced to be none zero. That means that in the second run the workaround is enforced and the buffer has to be copied. Again, more information regarding the API difference, can be found in appendix \ref{chapter:api_diff}.
 
 \begin{table}[ht]
 \caption{Performance test: Average time of copying same file five times on same device}
@@ -79,4 +79,4 @@ Offset non zero & 90203.1 & $\sim$ 90 & $\sim$ 1.5 \\ \hline
 \label{table:performance_test2}
 \end{table}
 
-This time the results are as expected, meaning the overhead of copying the hole data into a temporary buffer takes (about five seconds) longer.
+This time the result is as expected, meaning the overhead of copying the whole data into a temporary buffer takes (about five seconds) longer.
