@@ -656,6 +656,16 @@ The general layout of every FAT32 file system consists of following things\cite{
 \item Data area (directories and files)
 \end{enumerate}
 
+Figure \ref{figure:general_fat32_layout} illustrates the general layout from the beginning of an FAT32 formatted volume to its end. The sector size is assumed to be 512 bytes, which it mostly is. Nevertheless, it can be different from 512 bytes. The sector size can be determined in the boot sector structure at the beginning of the medium. Directly after the reserved region the file allocation tables are located. The last and also the biggest region is the data area. In the data area the actual content like directories and files is saved. Every part is described in detail in the following sections.
+
+\begin{figure}[h!]
+\caption{General layout of an FAT32 formatted volume}
+\centering
+\includegraphics[scale=0.62]{figures/fat_general}
+\label{figure:general_fat32_layout}
+\end{figure}
+
+
 \subsubsection{Reserved Region}
 
 The reserved region includes the boot sector and the FS Information sectors. The boot sector holds important information of the FAT32 file system. For example the sector and the cluster size, the start cluster of the root directory and how many FATs exist. The FS Information Sector holds information about the last allocated cluster and the free cluster count. A file system driver can then easier locate a free cluster and give information about the remaining free space on the disk. After that optional reserved sectors can follow, for example a backup of the boot sector and the FS Information Structure\cite{usb_ms_jan}.
@@ -668,7 +678,7 @@ Every FAT32 file system has a definite amount of clusters which can be used for 
 
 \subsubsection{Data area}
 
-The data area holds the actual contents of the file system. These are directories and files.
+The data area holds the actual contents, of the file system, the user wants to save. These are directories and files.
 
 \subsection{Boot Sector and FS Information Structure}
 
@@ -740,9 +750,24 @@ A series of clusters is called a cluster chain. Every directory or file consists
 
 After evaluating the cluster chain, the file system driver can access the contents of the clusters in the data area. To do this, the logical block address where a cluster starts can be computed as follows: ((cluster - 2) * sectors per cluster) + data area offset
 
-\subsection{Directories}
+\subsection{Directories and files}
 
-Directories are located in the data area of a FAT32 file system. The exact location of the contents and which clusters correspond to the directory must be determined by a cluster chain from the FAT. A directory consists of multiple 32 byte entries describing the contents of the directory. The contents can either be other directories, so called sub directories or files. The root directory is always present on a FAT32 file system. The start cluster of the root directory is stored in the boot sector. The root directory can also have a special entry not only describing files and other directories but an optional volume label which gives the volume a name. Remember that such a volume label could also be specified in the boot sector.
+Directories and files are located in the data area of a FAT32 file system. The exact location of the contents and which clusters correspond to the directory or file must be determined by a cluster chain from the FAT. A directory consists of multiple 32 byte entries describing the contents of the directory. The contents can either be other directories, so called sub directories or files. The root directory is always present on a FAT32 file system. The start cluster of the root directory is stored in the boot sector.
+
+Files do not have a defined structure, unlike directories. The raw data the file consists of is located in the different clusters, just as it is. The only thing defined, is the order, which can be determined from the FAT.
+\\\\
+Figure \ref{figure:data_area} shows a simplified example of the data area. The root directory starts at cluster 2 and ends with cluster 6. There is also a file in the data area, consisting of cluster 3 and 5. In cluster 4 a sub directory is located consisting only of one cluster. The hole data area is separated into clusters with a certain size, containing either chunks of data of a directory or a file.
+
+\begin{figure}[h!]
+\caption{Simplified illustration of the content in the data area}
+\centering
+\includegraphics[scale=0.62]{figures/fat_data_area}
+\label{figure:data_area}
+\end{figure}
+
+\subsubsection{Fat Directory Entry}
+
+The following table describes the structure of a Fat Directory entry. Every entry, normally, represents either another (sub)directory or file. The root directory can also have a special entry not only describing files and other directories but an optional volume label which gives the volume a name. Remember that such a volume label could also be specified in the boot sector. Another special entry is the long file name entry, which is described later.
 
 \begin{table}[!ht]
 \caption{Fat Directory Entry, compare to: \cite{usb_ms_jan, fatgen103}}
