@@ -56,7 +56,7 @@ The UsbMassStorageDevice class is the main entry point for accessing mass storag
 \label{figure:mass_dev}
 \end{figure}
 
-The class also has a lot of private members for communicating with the USB device via the Android API. There is a getter for the underlying UsbDevice, mainly for requesting the permission for communication by the user. Remember chapter \ref{chapter:usb_on_android} about the Android USB host API, where requesting a permission is described.
+The class also has a lot of private members for communicating with the USB device via the Android API. There is a getter for the underlying UsbDevice, mainly for requesting the permission for communication by the user. Requesting permission is described in chapter \ref{chapter:usb_on_android}, which is about the Android USB host API.
 
 \subsubsection{Partition}
 
@@ -68,7 +68,7 @@ The FileSystem interface provides a getter for the volume label, which returns e
 
 \subsubsection{UsbFile}
 
-The UsbFile interface represents an abstraction for files and directories. Every directory or file is an UsbFile. The root directory returned by the FileSystem interface is also a UsbFile. The UsbFile interface provides various methods to access and modify the contents of a file or directory. For a complete documentation on every method please refer to the javadoc in the source code. Note that some methods only make sense for directory or files, but not for both of them!
+The UsbFile interface represents an abstraction for files and directories. Every directory or file is an UsbFile. The root directory returned by the FileSystem interface is also a UsbFile. The UsbFile interface provides various methods to access and modify the contents of a file or directory. A complete documentation on every method offers the javadoc in the source code. Note that some methods only make sense for directory or files, but not for both of them!
 
 \begin{figure}[h!]
 \caption{UML class diagram of the UsbFile interface}
@@ -142,7 +142,7 @@ This class is in charge to create a suitable block device driver for the connect
 
 This is the representation of a block device driver which uses the SCSI transparent command set for communicating with devices. It transfers SCSI commands to the device, receives the desired responses from the device and interprets them.\\
 
-All SCSI commands a modeled in an own class which extend the CommandBlockWrapper. The CommandBlockWrapper is an abstract class which is always coupled with a SCSI command. Remember that every SCSI command is enclosed by a CBW in the SCSI transparent command set protocol. The CBW offers a method to serialize itself to a ByteBuffer. This data can then be transmitted directly to the device. The serialized data include the direction of the command, the transfer length in the transport phase and the length of the SCSI command.
+All SCSI commands a modeled in an own class which extend the CommandBlockWrapper. The CommandBlockWrapper is an abstract class which is always coupled with a SCSI command. As already mentioned, every SCSI command is enclosed by a CBW in the SCSI transparent command set protocol. The CBW offers a method to serialize itself to a ByteBuffer. This data can then be transmitted directly to the device. The serialized data include the direction of the command, the transfer length in the transport phase and the length of the SCSI command.
 
 Every SCSI command also offers the serialization to a ByteBuffer, it first calls the serialization method of the CBW class (super class) and then adds the own data to the ByteBuffer. Using this approach it is easy to wrap the CBW around the SCSI commands and new commands are easier to implement. 
 
