@@ -102,7 +102,7 @@ private void setupDevice() {
         // section about the Android USB Host API
         device.init();
 		
-        // we always use the first partition of the device
+        // always use the first partition of the device
         FileSystem fs = device.getPartitions().get(0).getFileSystem();
         Log.d(TAG, "volume label: " + fs.getVolumeLabel());
 		
