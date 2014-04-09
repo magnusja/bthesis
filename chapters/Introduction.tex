@@ -69,16 +69,16 @@ The USB Accessory mode is also backported to Android 2.3.4\cite{android_usb_acce
 On Android there exist classes to enumerate, connect to and communicate with connected USB devices. Table \ref{table:host_api} gives an overview of the classes which can be found in the package \textit{android.hardware.usb}.
 
 \begin{table}[ht]
-\caption{USB host APIs \cite{android_usb_host}}
+\caption{USB host APIs, compare to \cite{android_usb_host}}
 \centering
 \begin{tabular}{|l|p{10cm}|}
 \hline\hline
 \textbf{Class} & \textbf{Description} \\ \hline
-UsbManager & Allows you to enumerate and communicate with connected USB devices. \\ \hline
+UsbManager & Allows the enumeration and communication with connected USB devices. \\ \hline
 UsbDevice & Represents a connected USB device and contains methods to access its identifying information, interfaces, and endpoints. \\ \hline
 UsbInterface & Represents an interface of a USB device, which defines a set of functionality for the device. A device can have one or more interfaces on which to communicate on. \\ \hline
 UsbEndpoint & Represents an interface endpoint, which is a communication channel for this interface. An interface can have one or more endpoints, and usually has input and output endpoints for two-way communication with the device. \\ \hline
-UsbDeviceConnection & Represents a connection to the device, which transfers data on endpoints. This class allows you to send data back and forth synchronously or asynchronously. \\ \hline
+UsbDeviceConnection & Represents a connection to the device, which transfers data on endpoints. This class allows sending data back and forth synchronously or asynchronously. \\ \hline
 UsbRequest & Represents an asynchronous request to communicate with a device through a UsbDeviceConnection. \\ \hline
 UsbConstants & Defines USB constants that correspond to definitions in linux/usb/ch9.h of the Linux kernel. \\ \hline
 \end{tabular}
