@@ -2,32 +2,32 @@
 %\section{Detailed Validation Results}
 \label{chapter:DetailedDescriptions}
 
-When working with the USB features Android provides, an application on the device cannot be debugged as usual using the USB cable and plugging it into the computer. Android fortunately provides an easy solution for that. Android allows debugging over Wifi just like using the USB cable.
+When working with the USB features Android provides, an application on the device cannot be debugged as usual using a USB cable and plugging it into the computer. Android fortunately provides an easy solution for that. It allows debugging over Wifi just like using a USB cable.
 
-To enable debugging over Wifi certain steps have to be done. First connect the device as usual to the computer, then execute the following command using adb:
+To enable debugging over Wifi certain steps have to be done. The first step is to connect the device as usual to the computer and to execute the following command using adb:
 
 \lstset{language=bash}
-\begin{lstlisting}[caption=Restart the device in Wifi debug mode, label=listing:wifi_debug]
+\begin{lstlisting}[caption=Restarting the device in Wifi debug mode, label=listing:wifi_debug]
 localhost:platform-tools mep$ ./adb tcpip 5555
 restarting in TCP mode port: 5555
 \end{lstlisting}
 
-This command forces the device to restart the debugging functionalities in Wifi mode at port 5555. The device can now be used to debug over Wifi. To do this, look up the devices IP address in the Wifi settings of the device\footnote{The computer and the Android device, obviouly, have to be in the same (Wifi-)network.}. After that connection to the device can easily be established with another adb command:
+This command forces the device to restart the debugging functionalities in Wifi mode at port 5555. The device can now be used to debug over Wifi. To do this, the devices' IP address has to be looked up in the Wifi settings\footnote{The computer and the Android device, obviouly, have to be in the same (Wifi-)network.}. With the IP address the connection can easily be established with another adb command:
 
- \begin{lstlisting}[caption=Connect to the device over Wifi, label=listing:wifi_connect]
+ \begin{lstlisting}[caption=Connecting to the device over Wifi, label=listing:wifi_connect]
 localhost:platform-tools mep$ ./adb connect 192.168.2.108
 connected to 192.168.2.108:5555
  \end{lstlisting}
  
- After that, deploying and debugging applications can be done, just as usual, in eclipse or your desired environment!
+ After that, deploying and debugging applications can be done, just as usual, in eclipse or the desired environment!
 
 \chapter{Isochronous USB transfers}
 
-The introduction says that Android currently does not support isochronous USB transfers, and gives a reference to the official Android developer documentation\cite{android_usb_constants}. But this does not seem right for every device.
+The introduction says that Android currently does not support isochronous USB transfers, and gives a reference to the official Android developer documentation\cite{android_usb_constants}. But this does not seem to be appropriate for every device.
 
-Some devices like the Samsung Galaxy S3 support audio output via a connected USB Audio interface. Audio input seems to be unsupported. This is for example useful for USB headsets or docking stations which can play music. Unfortunately it is not part of the official Android. Nevertheless an application developer has no access to the isochronous transfers, they are hidden in the system and are only used to route the operating systems audio through the connected audio interface and not through the internal speaker.
+Some devices like the Samsung Galaxy S3 support audio output via a connected USB Audio interface. Audio input seems to be unsupported. This feature is for example useful for USB headsets or docking stations which can play music. Unfortunately it is not part of the official Android. Nevertheless an application developer has no access to the isochronous transfers, they are hidden in the system and are only used to route the operating systems audio through the connected audio interface instead through the internal speaker.
 
-The company beyerdynamic offers a headphone with an integrated amplifier and an USB audio interface. It is plugged into the Android device over USB. The headphone can only be used with some Android devices which support digital audio data via USB, for example the Samsung Galaxy S3 or S4 or the HTC Butterfly\cite{beyerdynamic}.
+The company beyerdynamic offers a headphone with an integrated amplifier and an USB audio interface. It is connected to the Android device over USB. The headphone can be used with some Android devices only, which support digital audio data via USB, for example the Samsung Galaxy S3 or S4 or the HTC Butterfly\cite{beyerdynamic}.
 
 In fact, it seems that there are also people who get isochronous transfers to work on non rooted devices using native code and the system call \textit{ioctl}\cite{usb_audio_recorder, iso_stack}.
 
@@ -42,9 +42,9 @@ int bulkTransfer(UsbEndpoint endpoint, byte[] buffer, int offset, int length, in
 int bulkTransfer(UsbEndpoint endpoint, byte[] buffer, int length, int timeout);
 \end{lstlisting}
 
-There is one method which accepts an offset. It represents the index of the first byte where a read or write shall begin. The framework developed in this theses highly makes usage of the ability to specify the offset. The other method just begins reading or writing at offset zero in the byte array.
+One method accepts an offset. It represents the index of the first byte where a read or write shall begin. The framework developed in this theses makes intense usage of the ability to specify the offset. The other method just begins reading or writing at offset zero in the byte array.
 
-Unfortunately in API level lower 18 only the latter method is available. The only workaround which solves this issue is to create a temporary buffer, perform the bulk read or write and then copy the temporary buffer to the actual buffer at the desired offset. This means there is the overhead of an extra array copy. Listing \ref{listing:workaround_api} shows how this is solved in the framework. More information can be found in the source code, especially in the class UsbMassStorageDevice.
+In API level lower 18 only the latter method is available. The only workaround which solves this issue is to create a temporary buffer, perform the bulk read or write and then copy the temporary buffer to the actual buffer at the desired offset. This yields to the overhead of an extra array copy. Listing \ref{listing:workaround_api} shows how this is solved in the framework. More information can be found in the source code, especially in the class \mbox{UsbMassStorageDevice}.
 
 \begin{lstlisting}[caption=Workaround for the missing method in API level lower 18, label=listing:workaround_api]
 @Override
