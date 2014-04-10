@@ -63,13 +63,13 @@ For that reason the USB-IF developed the USB On the go (USB OTG) feature in 2001
 \chapter{USB on Android}
 \label{chapter:usb_on_android}
 
-As already mentioned with Android 3.1 Honeycomb Google added USB features to the Android OS. There are two different modes Android keeps under control. The already mentioned Host support and a special USB Accessory mode. The Accessory Mode is only available on Android. It is supposed to develop USB host hardware specifically designed for Android devices, where the accessory is the USB host and powers the Android device\cite{android_usb_accessory}. The Android device is the client and can for example charge itself and interact with the hardware (e.g. playing music through external speakers). 
+As already mentioned, Google added USB features to the Android OS with Android 3.1 Honeycomb. There are two different modes Android keeps under control. The already mentioned host support and a special USB accessory mode. The accessory mode is only available on Android. It is supposed for developing USB host hardware specifically designed for Android devices, where the accessory is the USB host and powers the Android device\cite{android_usb_accessory}. The Android device is the client and can for example charge through and interact with the hardware (e.g. playing music through external speakers). 
 
 The USB Accessory mode is also backported to Android 2.3.4\cite{android_usb_accessory}. The developed framework solely relies on the USB host functionality since a memory stick is a USB client.
 
 \section{USB Host API}
 
-On Android there exist classes to enumerate, connect to and communicate with connected USB devices. Table \ref{table:host_api} gives an overview of the classes which can be found in the package \textit{android.hardware.usb}.
+Android offers classes to enumerate, connect to and communicate with connected USB devices. Table \ref{table:host_api} gives an overview of the classes which can be found in the package \textit{android.hardware.usb}.
 
 \begin{table}[ht]
 \caption{USB host APIs, compare to \cite{android_usb_host}}
@@ -79,7 +79,7 @@ On Android there exist classes to enumerate, connect to and communicate with con
 \textbf{Class} & \textbf{Description} \\ \hline
 UsbManager & Allows the enumeration and communication with connected USB devices. \\ \hline
 UsbDevice & Represents a connected USB device and contains methods to access its identifying information, interfaces, and endpoints. \\ \hline
-UsbInterface & Represents an interface of a USB device, which defines a set of functionality for the device. A device can have one or more interfaces on which to communicate on. \\ \hline
+UsbInterface & Represents an interface of a USB device, which defines a set of functionality for the device. A device can have one or more interfaces. \\ \hline
 UsbEndpoint & Represents an interface endpoint, which is a communication channel for this interface. An interface can have one or more endpoints, and usually has input and output endpoints for two-way communication with the device. \\ \hline
 UsbDeviceConnection & Represents a connection to the device, which transfers data on endpoints. This class allows sending data back and forth synchronously or asynchronously. \\ \hline
 UsbRequest & Represents an asynchronous request to communicate with a device through a UsbDeviceConnection. \\ \hline
@@ -96,7 +96,7 @@ The UsbRequest class is only needed when communicating asynchronously\footnote{A
 \item Begin the communication by opening a UsbDeviceConnection via the UsbEndpoint
 \end{enumerate}
 
-To understand the following sections, fundamental knowledge of Android programming is recommended. Basic things\footnote{Following things, for example, are seen as basic: Activity, Intent, PendingIntent, IntentFiler, Broadcast, BroadcastReceiver.} are not described in detail here. An introduction in Android programming can be found in the official Android developer documentation\footnote{\url{http://developer.android.com}}.
+To understand the following sections, fundamental knowledge of Android programming is recommended. Basics\footnote{Following things, for example, are seen as basic: Activity, Intent, PendingIntent, IntentFiler, Broadcast, BroadcastReceiver.} are not described in detail here. An introduction to Android programming can be found in the official Android developer documentation\footnote{\url{http://developer.android.com}}.
 
 \section{Enumerating devices}
 
@@ -137,9 +137,9 @@ While looping through the devices, it can easily be checked if any device fits t
 \section{Requesting permission for communication}
 \label{section:request_permission}
 
-After discovering a suitable USB device Android requires the user to accept the communication between an application and the USB device first. To do that the permission to communicate with the USB device has to explicitly be requested. A dialog is shown to the user asking for permission, where the user can click okay or cancel. For that the UsbManager offers a method called requestPermission which takes a UsbDevice and a PendingIntent as parameter. The PendingIntent in this case is a Broadcast which can be received via registering a BroadcastReceiver with a specific IntentFilter.
+After discovering a suitable USB device Android requires the user to accept the communication between an application and the USB device first. To do so the permission to communicate with the USB device has to explicitly be requested. A dialog is shown to the user asking for permission, where the user can click okay or cancel. Therefore the UsbManager offers a method called requestPermission which takes a UsbDevice and a PendingIntent as parameter. The PendingIntent in this case is a Broadcast which can be received via registering a BroadcastReceiver with a specific IntentFilter.
 
-Listing \ref{listing:permission_broadcast} shows how a BroadcastReceiver, for receiving notifications about the permission, can look like. First the the intent action is validated, this step is only needed if the BroadcastReceiver receives multiple different actions. In this example this is not the case. After that the UsbDevice can be accessed via an extra of the intent. Another extra of the intent is the permission state. If it is granted the extra is true and it is permitted to communicate with the device.
+Listing \ref{listing:permission_broadcast} shows how a BroadcastReceiver, for receiving notifications about the permission, can look like. First the intent action is validated, this step is only needed if the BroadcastReceiver receives multiple different actions. In this example this is not the case. After that the UsbDevice can be accessed via an extra of the intent. Another extra of the intent is the permission state. If it is granted the extra is true and it is permitted to communicate with the device.
 
 \begin{lstlisting}[caption=Permission BroadcastReceiver \cite{android_usb_host}, label=listing:permission_broadcast]
 private static final String ACTION_USB_PERMISSION =
@@ -166,7 +166,7 @@ private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
 };
 \end{lstlisting}
 
-The next step is to register this BroadcastReceiver that it can actually receive broadcasts from the system. This normally happens in the onCreate method of an Activity via the method registerReceiver which takes the BroadcastReceiver (mUsbReceiver) and the IntentFilter as parameter. The IntentFilter uses the ACTION\_USB\_PERMISSION string, declared in Listing \ref{listing:permission_broadcast}, to filter out undesired actions.
+The next step is to register this BroadcastReceiver that it can actually receive broadcasts from the system. This normally happens in the onCreate method of an Activity via the method registerReceiver which takes the BroadcastReceiver (mUsbReceiver) and the IntentFilter as parameter. The IntentFilter uses the ACTION\_USB\_PERMISSION string, declared in Listing \ref{listing:permission_broadcast}, to filter undesired actions.
 
 \begin{lstlisting}[caption=Register the BroadcastReceiver \cite{android_usb_host}, label=listing:register_broadcast]
 IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
@@ -184,7 +184,7 @@ mUsbManager.requestPermission(device, mPermissionIntent);
 
 \section{Communication}
 
-After succeeding all necessary steps to set up the device, finally, communication is possible. To do so the desired device has to be opened and an UsbDeviceConnection has to be retrieved. The class UsbDeviceConnection offers a method to claim a certain UsbInterface. After that communication is possible via the UsbDeviceConnection. It offers methods like bulkTransfer or controlTransfer.
+After succeeding all necessary steps to set up the device, communication is possible. To do so the desired device has to be opened and an UsbDeviceConnection has to be retrieved. The class UsbDeviceConnection offers a method to claim a certain UsbInterface. After that communication is possible via the UsbDeviceConnection. It offers methods like bulkTransfer or controlTransfer.
 
 \begin{lstlisting}[caption=Communicating with a connected device \cite{android_usb_host}, label=listing:communication]
 private Byte[] bytes
@@ -198,11 +198,11 @@ connection.claimInterface(intf, forceClaim);
 connection.bulkTransfer(endpoint, bytes, bytes.length, TIMEOUT); //do in another thread
 \end{lstlisting}
 
-Listing \ref{listing:communication} uses, for simplicity reasons, the first interface and endpoint. Normally the endpoint to communicate with, should be chosen wisely by examining for example the interface class, or the vendor ID of the device. A control transfer would look like analogous.
+Listing \ref{listing:communication} uses, for simplicity reasons, the first interface and endpoint. Normally the endpoint to communicate with, should be chosen wisely by examining for example the interface class, or the vendor ID of the device. A control transfer would look similar.
 
 \section{Tearing down the communication}
 
-When the communication between the Android application and the USB device is done, it has to be shut down. This is done by releasing the interface and closing the connection. Listing \ref{listing:closing_communication} gives a hint about how to do that.
+When the communication between the Android application and the USB device is done, it has to be shut down. This is done by releasing the interface and closing the connection. Listing \ref{listing:closing_communication} gives an example about how to do that.
 
 \begin{lstlisting}[caption=Closing communication, label=listing:closing_communication]
 public void close() {
@@ -217,7 +217,7 @@ public void close() {
 
 \section{Listening to attach and detach events}
 
-Android not only allows enumerating connected devices, an application can also register for attach and detach events of USB devices. The application then gets notified whenever a USB device is (dis)connected to the Android device. There are two different solutions to do that. The first one is via a BroadcastReceiver, the second one via the AndroidManifest.xml file. The second solution has the advantage that the application gets notified even if it has not been started before.
+Android does not only allow enumerating connected devices, an application can also register for attach and detach events of USB devices. The application then gets notified whenever a USB device is connected to or disconnected from the Android device. There are two different ways to do that. The first one is via a BroadcastReceiver, the second one via the AndroidManifest.xml file. The second method has the advantage that the application is notified even if it has not been started before.
 
 \subsection{Via BroadcastReceiver}
 
@@ -254,9 +254,9 @@ registerReceiver(mUsbReceiver, filter);
 
 \subsection{Via AndroidManifest.xml}
 
-If an application wants to get notified about the attachment of an USB device this can also be specified in the AndroidManifest.xml. This has the advantage that the application does not have to be started before. In fact it is started when a desired USB device is connected. The user is then asked if he wants to start the application which can handle the attached device. The next benefit is that the step of requesting permission, described in \ref{section:request_permission}, is not required because the user already gave his consent by allowing the application to start.
+If an application wants to be notified about the attachment of an USB device this can also be specified in the AndroidManifest.xml. This has the advantage that the application does not have to be started before. In fact it is started when a desired USB device is connected. The user is then asked if he wants to start the application which can handle the attached device. The next benefit is that the step of requesting permission, described in \ref{section:request_permission}, is not required because the user already gave his consent by allowing the application to start.
 
-As a plus a device filter can be specified. It allows the application to get notified only if an appropriate device was attached. Following attributes can be specified\cite{android_usb_host}:
+Additionally a device filter can be specified, which allows the application to be notified only if an appropriate device is attached. Following attributes can be specified\cite{android_usb_host}:
 
 \begin{itemize}
 \item Vendor ID
@@ -266,7 +266,7 @@ As a plus a device filter can be specified. It allows the application to get not
 \item Protocol (device or interface)
 \end{itemize}
 
-Here is an example how a device filter could look like:
+Below is an example how a device filter could look like:
 
 \lstset{language=XML}
 \begin{lstlisting}[caption=Example device filter \cite{android_usb_host}, label=listing:device_filter]
@@ -298,7 +298,7 @@ This resource file should be located at \textit{res/xml/device\_filter.xml} in t
 </manifest>
 \end{lstlisting}
 
-The intent filter for the action uses, again, the USB\_DEVICE\_ATTACHED string, like when using a BroadcastReceiver. But note that this time no broadcast is sent, an activity is started. The manifest also contains a \textit{uses-feature} entry, because not all Android devices guarantee to support the USB host feature\cite{android_usb_host}. The minimum sdk version is set to 12 here, because on lower API levels the USB API is not available. \\\\
+The intent filter for the action uses, again, the USB\_DEVICE\_ATTACHED string, like when using a BroadcastReceiver. This time no broadcast is sent, but an activity is started. The manifest also contains a \textit{uses-feature} entry, because not all Android devices guarantee to support the USB host feature\cite{android_usb_host}. The minimum sdk version is set to 12 here, because on lower API levels the USB API is not available. \\\\
 After that the UsbDevice can be accessed anywhere within the Activity like this:
 
 \lstset{language=Java}
@@ -308,7 +308,7 @@ UsbDevice device = (UsbDevice) getIntent().getParcelableExtra(UsbManager.EXTRA_D
 
 \chapter{USB Mass storage class}
 
-Most USB devices are of same type. To reduce development effort and allow OS designers offering generic drivers for a great range of different devices, a lot of device types are standardized. These different types are called classes in USB. There are for example standardizations for printers, USB hubs, audio or video devices, human interface devices and mass storage devices\cite{usb_classes}. The focus now, is on the mass storage class.
+Most USB devices are of same type. To reduce development effort and allow OS designers offering generic drivers for a great range of different devices, a lot of device types are standardized. These different types are called classes in USB. There are for example standardizations for printers, USB hubs, audio or video devices, human interface devices and mass storage devices\cite{usb_classes}. The focus in the following, is on the mass storage class.
 
 Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. Note that the mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device\cite{usb_ms_jan}. Reading and writing in this case does not necessarily mean reading or writing on the actual storage medium, this is described later.
 
@@ -316,9 +316,9 @@ There are two different types regarding the mass storage class. There is the bul
 
 \section{Bulk-only Transport}
 
-Unlike the name suggests there are two control requests in the BBB specification. The first one is a reset request to make the device becoming ready for the next command. The second is used to get the maximum LUN (Get Max LUN request). This requests tells about the number of standalone logical units the mass storage device supports\cite{usb_ms_jan}.
+Unlike the name suggests there are two control requests in the BBB specification. The first one is a reset request to prepare the device for the next command. The second is used to get the maximum LUN (Get Max LUN request). This requests informs about the number of standalone logical units the mass storage device supports\cite{usb_ms_jan}.
 
-Like already mentioned before, the interface class has to be set to 08h for the mass storage class. The subclass of the interface descriptor can have different values and specifies the supported protocols used to read and write data to the mass storage. Table \ref{table:subclass} gives an overview of the different protocols.
+As mentioned, the interface class has to be set to 08h for the mass storage class. The subclass of the interface descriptor can have different values and specifies the supported protocols used to read and write data to the mass storage. Table \ref{table:subclass} gives an overview of the different protocols.
 
 \begin{table}[ht]
 \caption{Overview subclass protocols \cite{usb_ms_jan}}
@@ -335,11 +335,11 @@ Like already mentioned before, the interface class has to be set to 08h for the 
 \label{table:subclass}
 \end{table}
 
-For the purpose described in this thesis, the SCSI transparent command set is the most important one, which is explained in the following chapter. The RBC is not even implemented in Windows, but in the Linux kernel\cite{usb_ms_jan}. The other protocols refer to other types of storage media and are not covered by this thesis.
+For the purpose described in this thesis, the SCSI transparent command set is the most important one, which is explained in the following chapter. The RBC is not even implemented in Windows, but in the Linux kernel\cite{usb_ms_jan}. The other protocols refer to other types of storage media which are not covered by this thesis.
 
 \section{SCSI transparent command set}
 
-Every SCSI command the host sends to the client is enclosed by a so called Command Block Wrapper (CBW). Sending this CBW is always the first thing when host and device exchange data. After transmitting the CBW, raw data can be transferred. The direction of that data can either be from the host to the device or vice versa. In this document, from now on, this phase is called the data, transport or transfer phase. Some commands do not need the data phase. In the last step the client device sends a Command Status Wrapper (CSW) to the host to inform about any failures or success.
+Every SCSI command the host sends to the client is enclosed by a so called Command Block Wrapper (CBW). Sending this CBW is always the first thing when host and device exchange data. After transmitting the CBW, raw data can be transferred. The direction of that data can either be from the host to the device or vice versa. In this document, from here on, this phase is called the data, transport or transfer phase. Some commands do not need the data phase. In the last step the client device sends a Command Status Wrapper (CSW) to the host to inform about any failures or success.
 
 The CBW is always 31 bytes long including the enclosing SCSI command. The host sends it through the OUT endpoint to the device. Following table illustrates the CBW:
 
@@ -362,7 +362,7 @@ CBWCB & 128 & The SCSI command the client shall execute. \\ \hline
 \label{table:cbw}
 \end{table}
 
-The dCBWTag is useful to associate the CSW with the CBW. The device uses the same value stored in the dCBWTag in the dCSWTag of the CSW. If multiple CBWs are sent at the same time the corresponding CSWs can be easily found with the help of the tag.
+The dCBWTag is useful to associate the CSW with the CBW. The device uses the same value stored in the dCBWTag in the dCSWTag of the CSW. If multiple CBWs are sent at the same time the corresponding CSWs can easily be found with the help of the tag.
 \\\\
 What data is transferred and how, is discussed in the sections about the different SCSI commands. For now it is ignored and the CSW is introduced in table \ref{table:csw}. The CSW is always 13 bytes.
 
@@ -382,7 +382,7 @@ bCSWStatus & 8 & 0 if command successfully passed, 1 if there was an error and 2
 
 \newpage
 
-The dCSWDataResidue holds the difference between the dCBWDataTransferLength and the number of bytes the device either processed when the host sends data or the number of bytes the device already sent to the host. Mostly all data can be transferred in one transfer phase meaning dCSWDataResidue is mostly zero.
+The dCSWDataResidue holds the difference between the dCBWDataTransferLength and the number of bytes the device either processed when the host sends data or the number of bytes the device already sent to the host. In most cases all data can be transferred in one transfer phase meaning dCSWDataResidue is mostly zero.
 
 The bCSWStatus informs about the success of executing the desired SCSI command. A value of zero indicates success. If this field is set to one there was an error executing the command. The host should then issue a SCSI REQUEST SENSE command to get more information about what went wrong\cite{usb_ms_jan}. More on this SCSI command later. If this value is two the host should perform a reset recovery. The reset consists of a bulk-only mass storage reset, which is one of the class specific commands and a Clear Feature HALT on the IN and OUT endpoint\cite{usb_ms_jan, usb_mass_bulk}.
 \\\\
@@ -391,9 +391,9 @@ The fields in the CBW and CSW are all serialized in little endian style.
 \section{SCSI commands}
 \label{section:scsi_commands}
 
-The Small Computer System Interface (SCSI) is a standard for communicating between computers and peripheral devices. It is most commonly used for hard disks and other storage devices, but it can also used for example for scanners\cite{wiki_scsi}. SCSI commands are used to get general information about the connected storage device, but also for reading and writing data from and to the device's storage. The USB mass storage class also uses this well established standard.
+The Small Computer System Interface (SCSI) is a standard for communicating between computers and peripheral devices. It is most commonly used for hard disks and other storage devices, but it can also be used for example for scanners\cite{wiki_scsi}. SCSI commands are used to get general information about the connected storage device, but also for reading and writing data from and to the device's storage. The USB mass storage class also uses this well established standard.
 
-The are a lot of different SCSI commands and not every device supports every command. To determine which commands a device supports, the host issues a SCSI INQUIRY command. Every device has to support this command and deliver a meaningful response to it. The device discloses, with the information included in the INQUIRY response, which commands are supported, i.e. which standardization it follows. In practice the most commonly supported commands are\cite{usb_ms_jan}:
+There are a lot of different SCSI commands and not every device supports every command. To determine which commands are supported by a specific device, the host issues a SCSI INQUIRY command. Every device has to support this command and deliver a meaningful response to it. The device discloses, with the information included in the INQUIRY response, which commands are supported, i.e. which standardization it follows. In practice the most commonly supported commands are\cite{usb_ms_jan}:
 
 \begin{itemize}
 \item INQUIRY
@@ -404,7 +404,7 @@ The are a lot of different SCSI commands and not every device supports every com
 \item WRITE(10)
 \end{itemize}
 
-Every device should support at minimum these commands! Every SCSI command starts with the operation code, also called OPCODE (one byte), which identifies the command. The following data then depends on the specific command. The ten after some commands describes the length of the command in bytes. There are for example different READ commands, READ(6), READ(10), READ(12), READ(16) and READ(32)\cite{scsi_seagate}. These commands all differ in their length. This is needed because in the READ(6) command, the logical block address field which is used to address a block is only 16 bit. However devices with a big storage cannot use this command, because the whole storage cannot be addressed with a 16 byte value. Thus in the READ(10) command, which is the most commonly used, the address field is 32 bit.\\\\
+Every device should support at least these commands! Every SCSI command starts with the operation code, also called OPCODE (one byte), which identifies the command. The following data depends on the specific command. The ten after some commands describes the length of the command in bytes. There are for example different READ commands, READ(6), READ(10), READ(12), READ(16) and READ(32)\cite{scsi_seagate}. These commands all differ in their length. This is needed because in the READ(6) command, the logical block address field which is used to address a block is only 16 bit. However devices with a big storage cannot use this command, because the whole storage cannot be addressed with a 16 byte value. Thus in the READ(10) command, which is the most commonly used, the address field is 32 bit.\\\\
 SCSI commands use the big endian style for storing fields bigger than one byte.
 
 \subsection{INQUIRY}
@@ -426,7 +426,7 @@ As already mentioned the INQUIRY command is used to get general information abou
 \label{table:inquiry}
 \end{table}
 
-The most important fields in the INQUIRY command are the operation code and the allocation length. The allocation length tells the storage device how many bytes the host has allocated for the INQUIRY response. The device then replies with an answer at most as big as the allocation length. The allocation field should be at least five (bytes). The EVPD\footnote{Enable Vital Product Data} and the page code are used to get more information about the vital product data. If the EVPD bit is set to one, the device should return the part of the vital product data specified in the field page code. If the EVPD bit is set to zero only the standard INQUIRY data shall be returned\cite{scsi_seagate}. This thesis describes only the latter case.
+The most important fields in the INQUIRY command are the operation code and the allocation length. The allocation length tells the storage device how many bytes the host has allocated for the INQUIRY response. The device then replies with an answer not larger than the allocation length. The allocation field should be at least five (bytes). The EVPD\footnote{Enable Vital Product Data} and the page code are used to get more information about the vital product data. If the EVPD bit is set to one, the device should return the part of the vital product data specified in the field page code. If the EVPD bit is set to zero only the standard INQUIRY data shall be returned\cite{scsi_seagate}. This thesis describes only the latter case.
 
 The Allocation Length field and the Control field are commonly used fields which occur in various SCSI commands\cite{scsi_seagate}.
 
@@ -533,13 +533,13 @@ The READ(10) command requests the device to read the specified blocks from the s
 \label{table:read_10}
 \end{table}
 
-Most important are the LBA and Transfer Length fields. The other fields shall remain zero. They are responsible, for example, to specify caching behavior or read protection\footnote{Way back, pen drives with a physical switch for write protection, were pretty common.}.
+For this thesis only the LBA and Transfer Length fields are important. The other fields shall remain zero. They are responsible, for example, to specify caching behavior or read protection\footnote{Way back, pen drives with a physical switch for write protection, were pretty common.}.
 
 The WRITE(10) command is formatted exactly like the READ(10) command except that the operation code is 2Ah and the RDPROTECT field is called WDPROTECT. The direction of the transport phase is, of course, the other way round, from computer to the device. The direction has to be specified correctly in the CBW!
 
 \subsubsection{Logical Block Address}
 
-Every mass storage device is structured in blocks. These blocks have a definite size. The size of each block can be determined by issuing a READ CAPACITY(10) command. The blocks are numbered contiguously beginning from zero to the amount of blocks minus one. This number is called logical block address, short LBA. With the LBA every block can easily be addressed and accessed. The READ(10) and WRITE(10) SCSI commands use this method of addressing for reading and writing data to the storage medium. The transfer length specifies how many blocks, including the block at the LBA, shall be transferred. That means reading or writing begins at a block defined through the LBA with as many directly consecutive blocks as desired.
+Every mass storage device is structured in blocks. These blocks have a defined size. The size of each block can be determined by issuing a READ CAPACITY(10) command. The blocks are numbered consecutively beginning from zero to the amount of blocks minus one. This number is called logical block address, short LBA. With the LBA every block can easily be addressed and accessed. The READ(10) and WRITE(10) SCSI commands use this method of addressing for reading and writing data to the storage medium. The transfer length specifies how many blocks, including the block at the LBA, shall be transferred. That means reading or writing begins with a block defined through the LBA with as many directly consecutive blocks as desired.
 
 \subsection{REQUEST SENSE}
 
@@ -595,7 +595,7 @@ A detailed description of these fields can be found in the SCSI Commands Referen
 
 \section{General}
 
-With the USB bulk transfers and the SCSI commands it is now possible to read and write raw data from and to the device. That means one can now access the bytes stored on the medium. The only thing missing is some abstraction to handle the raw data. To do this on mass storage devices the most commonly used approaches are partitions and file systems. A file system is a way to organize data in directories and files with human readable names. Thus the user can easily find things without knowing something about the addressing methods of a mass storage device.
+With the USB bulk transfers and the SCSI commands it is now possible to read and write raw data from and to the device. That means one can access the bytes stored on the medium. The only thing missing is some abstraction to handle the raw data. To do this on mass storage devices the most commonly used approaches are partitions and file systems. A file system is a way to organize data in directories and files with human readable names. Thus the user can easily find things without knowing something about the addressing methods of a mass storage device.
 
 \subsubsection{Directories}
 
@@ -603,17 +603,17 @@ A directory is a container for files and other directories. With the help of a d
 
 \subsubsection{Files}
 
-Other than directories, files do not help structuring the contents, but hold the actual data the user wants to save and later access again.
+Unlike directories, files do not help structuring the contents, but hold the actual data the user wants to save and later access again.
 
 \subsection{Examples}
 
-Today there exist many different file systems. Most important file systems are FAT32 and NTFS from Windows background, ext3, ext4 and btrfs from the Linux/Unix background and HFS+, also called Mac OS Extended, developed by Apple for their OS X operating system. All listed file systems, except FAT32, use binary trees or something related to structure the contents of the directories.
+Today there are many different file systems. Most commonly used file systems are FAT32 and NTFS from Windows background, ext3, ext4 and btrfs from the Linux/Unix background and HFS+, also called Mac OS Extended, developed by Apple for their OS X operating system. All listed file systems, except FAT32, use binary trees or something similar to structure the contents of the directories.
 
-On USB mass storage devices the most popular file systems are FAT32 and NTFS, because obviously most people use the Windows operating system. The NTFS specification is not published by Microsoft. Thus it is very hard to support NTFS on other systems, nevertheless there is NTFS support in the Linux kernel. The FAT32 specification is publicly available and can be downloaded from the Microsoft website\footnote{\url{http://msdn.microsoft.com/en-us/windows/hardware/gg463080.aspx}}. Because of the lack of support for unix like file systems on Windows, the Linux and OS X file systems are only used by someone who do not need to exchange data with Windows machines. Therefore the FAT32 file system, which has an open specification and is the mostly used file system on sd cards and pen drives, is introduced in the following sections in detail.
+On USB mass storage devices the most popular file systems are FAT32 and NTFS, because obviously most people use the Windows operating system. The NTFS specification is not published by Microsoft. Thus it is very hard to support NTFS on other systems, nevertheless there is NTFS support in the Linux kernel. The FAT32 specification is publicly available and can be downloaded from the Microsoft website\footnote{\url{http://msdn.microsoft.com/en-us/windows/hardware/gg463080.aspx}}. Because of the lack of support for unix like file systems on Windows, the Linux and OS X file systems are only used by users who do not need to exchange data with Windows machines. Therefore the FAT32 file system, which has an open specification and is the mostly used file system on sd cards and pen drives, is described in the following sections in detail.
 
 \subsection{Partition table}
 
-Before having a closer look at the FAT32 file system, partition tables have to be explained. A physical drive can have multiple partitions which operate independent from each other. They can also have different file systems. In Windows for example every partition is handled by a separate drive letter.
+Before having a closer look at the FAT32 file system, partition tables have to be explained. A physical drive can have multiple partitions which operate independently from each other. They can also have different file systems. In Windows for example every partition is handled by a separate drive letter.
 
 A partition table holds the information needed for identifying the different partitions on the disk. This information includes where the partition on the disk starts, ends or how many blocks it occupies and with which file system the partition is formatted. There are two different partition tables most commonly used today. The Master Boot Record (MBR) and the GUID partition table (GPT) which is part of the UEFI standard\cite{wiki_guid}. The Master Boot Record is used in PCs with BIOS and is currently replaced by the GPT in UEFI PCs. On USB mass storage devices mostly the MBR is applicable. 
 
@@ -621,7 +621,7 @@ A partition table holds the information needed for identifying the different par
 
 The MBR occupies 512 bytes at the beginning (LBA zero) of the medium. The first 446 bytes can store executable code the BIOS executes when a PC is booting. The executable code is then responsible for booting from an bootable partition. Beginning with byte 446 the partition table starts. There is place for up to four partition table entries. The last two bytes are the boot signature which identify the MBR. Byte 510 must be 55h and byte 511 must be AAh\cite{fat_paul}.
 
-Since there is only place for four partition table entries, a disk formatted with the MBR normally could only have up to four different partitions, called primary partitions. If more partitions are required, extended partitions may be used. An extended partition has its own partition table enclosed by an extended boot record (EBR). The partition table entry in the MBR then points to the EBR which is followed by the extended partition. An EBR can contain one additional entry for another extended partition, thus there is theoretically no limit to the number of extended partitions\cite{usb_ms_jan}.
+Since there is only place for four partition table entries, a disk formatted with the MBR normally could only have up to four different partitions, called primary partitions. If more partitions are required, extended partitions may be used. An extended partition has its own partition table enclosed by an extended boot record (EBR). The partition table entry in the MBR then points to the EBR which is followed by the extended partition. An EBR can contain one additional entry for another extended partition, thus there is practically no limit to the number of extended partitions\cite{usb_ms_jan}.
 
 \begin{table}[ht]
 \caption{Partition Table Entry in the MBR, compare to: \cite{usb_ms_jan}}
@@ -641,9 +641,9 @@ Since there is only place for four partition table entries, a disk formatted wit
 \label{table:mbr_entry}
 \end{table}
 
-The important fields of a partition table entry are located at byte four, eight and twelve. The fields for CHS addressing are pretty much obsolete. It is a former way to address the blocks on a block device through cylinder, head and sector information. Today only the logical block addressing mechanism is important.
+The important fields of a partition table entry in the MBR are located at byte four, eight and twelve. The fields for CHS addressing are pretty much obsolete. It is a former way to address the blocks on a block device through cylinder, head and sector information. Today only the logical block addressing mechanism is important.
 
-The partition table entry holds the first logical block address of the partition. This is where the partition starts, and the content of the file system of the desired partition begins. The entry also holds the total number of blocks the partition occupies, but mostly this value is also stored in the file system of the partition, and most software uses this value instead\cite{usb_ms_jan}.
+The partition table entry holds the first logical block address of the partition. This is where the partition starts, and the content of the file system of the desired partition begins. The entry also holds the total number of blocks the partition occupies, but in most cases this value is also stored in the file system of the partition, and most software uses this value instead\cite{usb_ms_jan}.
 
 The partition type can either be a value indicating which file system the partition has, e.g. 0Bh or 0C for FAT32, or a hint for an extended partition. Extended partitions are identified by values of 05h or 0Fh. If the partition table entry is unused the partition type must equal to zero\cite{usb_ms_jan}.
 \\\\
@@ -669,7 +669,7 @@ The general layout of every FAT32 file system consists of following parts\cite{f
 \item Data area (directories and files)
 \end{enumerate}
 
-Figure \ref{figure:general_fat32_layout} illustrates the general layout from the beginning of an FAT32 formatted volume to its end. The sector size is assumed to be 512 bytes, which it mostly is. Nevertheless, it can be different from 512 bytes. The sector size can be determined in the boot sector structure at the beginning of the medium. Directly after the reserved region the file allocation tables are located. The last and also biggest region is the data area. In the data area the actual content, like directories and files, is saved. Every part is described in detail in the following sections.
+Figure \ref{figure:general_fat32_layout} illustrates the general layout from the beginning of a FAT32 formatted volume to its end. The sector size is assumed to be 512 bytes, which is mostly the case. Nevertheless, it can be different from 512 bytes. The sector size can be determined from the boot sector structure at the beginning of the medium. Directly after the reserved region the file allocation tables are located. The last and also biggest region is the data area. In the data area the actual content, like directories and files, is saved. Every part is described in detail in the following sections.
 
 \begin{figure}[h!]
 \caption{General layout of an FAT32 formatted volume}
