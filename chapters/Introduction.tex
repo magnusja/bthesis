@@ -110,7 +110,7 @@ for(UsbDevice device : usbManager.getDeviceList().values()) {
 }
 \end{lstlisting}
 
-Accessing the UsbInterface and the UsbEndpoint is also straight forward. The UsbDevice has a method to get the desired interfaces and the UsbInterface has a method to get the desired endpoints on the other hand. Listing \ref{listing:interface_endpoint} illustrates the process.
+Accessing the UsbInterface and the UsbEndpoint is also straightforward. The UsbDevice has a method to get the desired interfaces and the UsbInterface has a method to get the desired endpoints on the other hand. Listing \ref{listing:interface_endpoint} illustrates the process.
 
 \begin{lstlisting}[caption=Accessing UsbInterface and UsbEndpoint, label=listing:interface_endpoint]
 UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
@@ -404,7 +404,7 @@ There are a lot of different SCSI commands and not every device supports every c
 \item WRITE(10)
 \end{itemize}
 
-Every device should support at least these commands! Every SCSI command starts with the operation code, also called OPCODE (one byte), which identifies the command. The following data depends on the specific command. The ten after some commands describes the length of the command in bytes. There are for example different READ commands, READ(6), READ(10), READ(12), READ(16) and READ(32)\cite{scsi_seagate}. These commands all differ in their length. This is needed because in the READ(6) command, the logical block address field which is used to address a block is only 16 bit. However devices with a big storage cannot use this command, because the whole storage cannot be addressed with a 16 byte value. Thus in the READ(10) command, which is the most commonly used, the address field is 32 bit.\\\\
+Every device should support at least these commands! Every SCSI command starts with the operation code, also called OPCODE (one byte), which identifies the command. The following data depends on the specific command. The ten after some commands describes the length of the command in bytes. There are for example different READ commands, READ(6), READ(10), READ(12), READ(16) and READ(32)\cite{scsi_seagate}. These commands all differ in their length. This is needed because in the READ(6) command, the logical block address field which is used to address a block is only 16 bit. However devices with a big storage cannot use this command, because the whole storage cannot be addressed with a 16 byte value. Thus in the READ(10) command, which is the most commonly used read command, the address field is 32 bit.\\\\
 SCSI commands use the big endian style for storing fields bigger than one byte.
 
 \subsection{INQUIRY}

@@ -42,7 +42,7 @@ int bulkTransfer(UsbEndpoint endpoint, byte[] buffer, int offset, int length, in
 int bulkTransfer(UsbEndpoint endpoint, byte[] buffer, int length, int timeout);
 \end{lstlisting}
 
-One method accepts an offset. It represents the index of the first byte where a read or write shall begin. The framework developed in this theses makes intense usage of the ability to specify the offset. The other method just begins reading or writing at offset zero in the byte array.
+One method accepts an offset. It represents the index of the first byte where a read or write shall begin in the byte array. The framework developed in this thesis makes intense usage of the ability to specify the offset. The other method just begins reading or writing at offset zero in the byte array.
 
 In API level lower 18 only the latter method is available. The only workaround which solves this issue is to create a temporary buffer, perform the bulk read or write and then copy the temporary buffer to the actual buffer at the desired offset. This yields to the overhead of an extra array copy. Listing \ref{listing:workaround_api} shows how this is solved in the framework. More information can be found in the source code, especially in the class \mbox{UsbMassStorageDevice}.
 
