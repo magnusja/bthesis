@@ -1,13 +1,13 @@
 \chapter{Introduction}
 \label{chapter:Introduction}
 
-Since Android 3.1, which was originally designed for tablet computers, a lot of Android devices come with USB host support (USB On the go). That means a normal Android tablet or phone can not only act as an USB client when connected to a computer. It can also act as an USB host for peripherals by powering the bus with the needed 5 Volt and changing into USB host mode which enables enumeration of connected USB devices\cite{android_usb_host}. Android currently supports interrupt, bulk and control transfers\footnote{Isochronous transfers are currently unsupported\cite{android_usb_constants}.}. That means nearly every USB device can, theoretically, be used with an Android device\footnote{Webcams or Audio devices mostly use isochronous transfers and can thus not be used at the moment.}. The Android host API easily allows to communicate with connected USB devices, i.e. a high level USB driver can be written in Java.
+Since Android 3.1, which was originally designed for tablet computers, a lot of Android devices come with USB host support (USB On the go). That means a normal Android tablet or phone can not only act as an USB client when connected to a computer. It can also act as an USB host for peripherals by powering the bus with the needed 5 Volt and changing into USB host mode which enables enumeration of connected USB devices\cite{android_usb_host}. Android currently supports interrupt, bulk and control transfers\footnote{Isochronous transfers are currently unsupported\cite{android_usb_constants}.}. That means nearly every USB device can, theoretically, be used with an Android device\footnote{Webcams or audio devices mostly use isochronous transfers and can thus not be used at the moment.}. The Android host API easily allows to communicate with connected USB devices, i.e. a high level USB driver can be written in Java.
 
 Whereby the idea of connecting a USB mass storage device like USB flash drives or external HDDs is not far-fetched. Especially when looking at recent occurrences where a lot of devices miss a slot for SD-Cards and only offer a solid, mostly small, internal storage. Unfortunately the stock Android comes without support for USB storage devices. That means when connecting mass storage devices to an Android phone, nothing happens. The data cannot be accessed via a file manager or something similar. On rooted devices this is possible because the alternative Android ROMs often provide support for it. But with the Android USB Host API it should also be possible to access such devices without rooting the device and flashing an alternative ROM. The only thing needed is to implement the low level USB communication via e.g. bulk transfers and the abstraction of directories and files via a file system.
 
-Currently there are two applications in the Google Play Store which allow accessing mass storage devices without root rights! First there is a plugin for the Total Commander called \textit{USB-Stick Plugin-TC}. The plugin extends the Total Commander application by USB mass storage access. It currently supports FAT12, FAT16, FAT32 exFAT and NTFS (read only). There is a free trial version available. The second application is called \textit{Nexus Media Importer}. It supports FAT16, FAT32 and NTFS (also read only). There is no free trial version available. In general both apps support USB sticks, external HDDs and card readers.
+Currently there are two applications in the Google Play Store which allow accessing mass storage devices without root rights! First there is a plugin for the Total Commander called \textit{USB-Stick Plugin-TC}. The plugin extends the Total Commander application by USB mass storage access. It currently supports FAT12, FAT16, FAT32, exFAT and NTFS (read only). There is a free trial version available. The second application is called \textit{Nexus Media Importer}. It supports FAT16, FAT32 and NTFS (also read only). There is no free trial version available. In general both apps support USB sticks, external HDDs and card readers.
 
-The disadvantage both applications have is that there is no solution to access the mass storage from other apps. That means all accessed data has to be cached and copied to the internal storage before any other app can use it. Unfortunately it seems that these limitations are impossible be overcome!
+The disadvantage both applications have is that there is no solution to access the mass storage from other apps. That means all accessed data has to be cached and copied to the internal storage before any other app can use it. Unfortunately it seems that these limitations are impossible to overcome!
 
 Both applications are proprietary and thus do not offer the ability to look into and change the source code. Therefore an open source Android Framework for accessing mass storage devices is developed in this bachelor thesis. The license is the very liberal Apache License, Version 2.0, like Android is licensed under.
 
@@ -21,7 +21,7 @@ There are a lot of numbers in this thesis. If the number has a trailing 'h', for
 
 \chapter{Basics about USB}
 
-USB means Universal Serial Bus and is a standard for a serial bus system, for connecting multiple peripheral devices to a personal computer. The first version was introduced by Intel in 1996 and now the specification is done by the USB Implementers Forum (USB-IF). The USB-IF is a corporation founded by various companies which work non-profit on the USB specification. In USB commutation there is one device one called USB host controller (e.g. computer) which initiates the connection and communication and multiple clients (slaves). The client only sends data when the host asks for it. The USB host is responsible for powering the connected client, thus an external power source is only necessary in some special cases\cite{wiki_usb}.
+USB means Universal Serial Bus and is a standard for a serial bus system, for connecting multiple peripheral devices to a personal computer. The first version was introduced by Intel in 1996 and now the specification is done by the USB Implementers Forum (USB-IF). The USB-IF is a corporation founded by various companies which work non-profit on the USB specification. In USB communication there is one device, called USB host controller (e.g. computer), which controls the connection and multiple clients (slaves). The client only sends data when the host asks for it. The USB host is responsible for powering the connected client, thus an external power source is only necessary in some special cases\cite{wiki_usb}.
 
 \section{Client device hierarchy}
 
@@ -36,8 +36,8 @@ A USB client is structured into four different USB descriptors:
 
 The device descriptor represents the USB device as a whole device which is connected to the USB bus. This can, for example be a loud speaker with volume control buttons.\\
 The configuration descriptor represents the current state of the USB device. This can for example be standby or active.\\
-A USB Interface descriptor describes every logical device which belongs to the USB device. Often USB devices consist of multiple logical device units. For example a loud speaker could consist of the speakers as a audio device and buttons to control the volume as a human interface device. \\
-Lastly there are the endpoint descriptors which represent unidirectional communication pipes. This is where the actual communication happens. Endpoints can either be of type IN (device to host) or OUT (host to device). Additional there are four different types of endpoints, to fit the different requirements of communication\cite{free_usb}.\\
+A USB Interface descriptor describes every logical device which belongs to the USB device. Often USB devices consist of multiple logical device units. For example a loud speaker could consist of the speakers as an audio device and buttons to control the volume as a human interface device. \\
+Lastly there are the endpoint descriptors which represent unidirectional communication pipes. This is where the actual communication happens. Endpoints can either be of type IN (device to host) or OUT (host to device). Additionally there are four different types of endpoints, to fit the different requirements of communication\cite{free_usb}.\\
 
 \section{Endpoints}
 
@@ -45,22 +45,22 @@ Every USB device has different requirements towards the underlying communication
 
 Control endpoints are used to configure the device and retrieve status information. These transfers are typically very small. Every device has a control endpoint called endpoint 0 which plays an important role at insertion time\cite{free_usb}.
 
-Interrupt transfers carry a small amount of data to the host every time the host asks for it. This happens at a fixed rate resulting in a fixed and guaranteed bandwidth. These transfers are used by Human interface devices (e.g. mouse, keyboard, gamepads) which need a low latency and a low packet size.
+Interrupt transfers carry a small amount of data to the host every time the host asks for it. This happens at a fixed rate resulting in a fixed and guaranteed bandwidth. These transfers are used by human interface devices (e.g. mouse, keyboard, gamepads) which need a low latency and a low packet size.
 
-Next there are bulk endpoints. These are useful when the amount of data transferred varies often and happens infrequently. The remaining available bandwidth the bus offers is used. Hence there is no guarantee on bandwidth or latency. However bulk transfers offer consistent data transfers, meaning that no data is lost. They are typically used for printers, network or mass storage devices. Everywhere where data loss is unacceptable and no guaranteed bandwidth is needed.
+Next there are bulk endpoints. These are useful when the amount of data transferred varies often and happens infrequently. The remaining available bandwidth the bus offers is used. Hence there is no guarantee on bandwidth or latency. However bulk transfers offer consistent data transfers, meaning that no data is lost. They are typically used for printers, network or mass storage devices. Everywhere, where data loss is unacceptable and no guaranteed bandwidth is needed.
 
-Finally there are the isochronous transfers. They offer a guaranteed bandwidth while resigning consistency. The guaranteed bandwidth is mostly as fast as possible and valuable for real time transfers (e.g. audio or video). Mostly these transfers are used for Webcams or Audio devices (e.g. external audio cards/audio interfaces)\cite{free_usb}.
+Finally there are the isochronous transfers. They offer a guaranteed bandwidth while resigning consistency. The guaranteed bandwidth is mostly as fast as possible and valuable for real time transfers (e.g. audio or video). Mostly these transfers are used for webcams or audio devices (e.g. external audio cards/audio interfaces)\cite{free_usb}.
 
-\section{USB on the go}
+\section{USB On the go}
 
-As already mentioned, in USB communication there is always a host (master) and a client (device). The host initiates the communication and acts as a master. That means the client is not allowed to send data at any time, it can send data only when the host explicitly asks to do so! The client is only able to signal that it requires attention. Then the host must react and ask for receiving data. When connecting a smartphone or tablet to the computer the computer acts as the host and the smartphone as the client device. That means the smartphone normally acts as a client device and not as the USB host. The host is responsible for the power supply of the client device. In the desired constellation described in this thesis, however, it has obviously to act as a host. 
+As already mentioned, in USB communication there is always a host (master) and a client (device). The host initiates the communication and acts as a master. That means the client is not allowed to send data at any time, it can send data only when the host explicitly asks to do so! The client is only able to signal that it requires attention. Then the host must react and ask for receiving data. When connecting a smartphone or tablet to the computer, the computer acts as the host and the smartphone as the client device. That means the smartphone normally acts as a client device and not as the USB host. The host is responsible for the power supply of the client device. In the desired constellation described in this thesis, however, it has obviously to act as a host. 
 
 For that reason the USB-IF developed the USB On the go (USB OTG) feature in 2001. It is part of the USB 2.0 specification\cite{wiki_usb}. This feature allows a USB device to act as a client or either a host depending on the present situation. To use the USB OTG mode, on a smartphone, a special USB OTG adapter is needed. This is necessary for two reasons. A priori for signaling that the smartphone should now act as a host and not as usual as a client and secondly because most smartphones and tables do not provide a normal USB port of type A. Instead they offer a mini (older devices) or micro port of type Mini-A or Micro-B\cite{wiki_usb_otg}. 
 
 \chapter{USB on Android}
 \label{chapter:usb_on_android}
 
-As already mentioned with Android 3.1 Honeycomb Google added USB features to the Android OS. There are two different modes Android keeps under control. The already mentioned Host support and a special USB Accessory mode. The Accessory Mode is special and only available on Android. It is supposed to develop USB host hardware specifically designed for Android devices, where the accessory is the USB host and powers the Android device\cite{android_usb_accessory}. The Android device is the client and can for example charge itself and interact with the hardware (e.g. playing music through external speakers). 
+As already mentioned with Android 3.1 Honeycomb Google added USB features to the Android OS. There are two different modes Android keeps under control. The already mentioned Host support and a special USB Accessory mode. The Accessory Mode is only available on Android. It is supposed to develop USB host hardware specifically designed for Android devices, where the accessory is the USB host and powers the Android device\cite{android_usb_accessory}. The Android device is the client and can for example charge itself and interact with the hardware (e.g. playing music through external speakers). 
 
 The USB Accessory mode is also backported to Android 2.3.4\cite{android_usb_accessory}. The developed framework solely relies on the USB host functionality since a memory stick is a USB client.
 
@@ -85,7 +85,7 @@ UsbConstants & Defines USB constants that correspond to definitions in linux/usb
 \label{table:host_api}
 \end{table}
 
-The UsbRequest class is only needed when communicating asynchronously\footnote{Asynchronous communication is passed in the implementation.}. The rough procedure of getting in touch with a USB device includes following steps:
+The UsbRequest class is only needed when communicating asynchronously\footnote{Asynchronous communication is passed in the implementation of the framework.}. The rough procedure of getting in touch with a USB device includes following steps:
 
 \begin{enumerate}
 \item Retrieve the desired UsbDevice via the UsbManager
@@ -93,7 +93,7 @@ The UsbRequest class is only needed when communicating asynchronously\footnote{A
 \item Begin the communication by opening a UsbDeviceConnection via the UsbEndpoint
 \end{enumerate}
 
-To understand the following sections fundamental knowledge of Android programming is recommended. Basic things\footnote{Following things, for example, are seen as basic: Activity, Intent, PendingIntent, IntentFiler, Broadcast, BroadcastReceiver.} are not described in detail here. An introduction in Android programming can be found in the official Android developer documentation\footnote{\url{http://developer.android.com}}.
+To understand the following sections, fundamental knowledge of Android programming is recommended. Basic things\footnote{Following things, for example, are seen as basic: Activity, Intent, PendingIntent, IntentFiler, Broadcast, BroadcastReceiver.} are not described in detail here. An introduction in Android programming can be found in the official Android developer documentation\footnote{\url{http://developer.android.com}}.
 
 \section{Enumerating devices}
 
@@ -163,16 +163,16 @@ private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
 };
 \end{lstlisting}
 
-The next step is to register this BroadcastReceiver that it can actually receive broadcasts from the system. This normally happens in the onCreate method of an Activity via the method registerReceiver which takes the BroadcastReceive (mUsbReceiver) and and IntentFilter as a parameter. The IntentFilter uses the ACTION\_USB\_PERMISSION string, declared in Listing \ref{listing:permission_broadcast}, to filter out undesired actions.
+The next step is to register this BroadcastReceiver that it can actually receive broadcasts from the system. This normally happens in the onCreate method of an Activity via the method registerReceiver which takes the BroadcastReceiver (mUsbReceiver) and the IntentFilter as parameter. The IntentFilter uses the ACTION\_USB\_PERMISSION string, declared in Listing \ref{listing:permission_broadcast}, to filter out undesired actions.
 
 \begin{lstlisting}[caption=Register the BroadcastReceiver \cite{android_usb_host}, label=listing:register_broadcast]
 IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
 registerReceiver(mUsbReceiver, filter);
 \end{lstlisting}
 
-The last step consists of requesting the permission with using the UsbManager:
+The last step consists of requesting the permission using the UsbManager:
 
-\begin{lstlisting}[caption=Register the BroadcastReceiver \cite{android_usb_host}, label=listing:request_permission]
+\begin{lstlisting}[caption=Request permission \cite{android_usb_host}, label=listing:request_permission]
 UsbDevice device;
 ...
 mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
@@ -195,7 +195,7 @@ connection.claimInterface(intf, forceClaim);
 connection.bulkTransfer(endpoint, bytes, bytes.length, TIMEOUT); //do in another thread
 \end{lstlisting}
 
-Listing \ref{listing:communication} above uses, for simplicity reasons, the first interface and endpoint. Normally the endpoint to communicate with should be chosen wisely by examining for example the interface class, or the vendor ID of the device. A control transfer would look like analogous.
+Listing \ref{listing:communication} uses, for simplicity reasons, the first interface and endpoint. Normally the endpoint to communicate with, should be chosen wisely by examining for example the interface class, or the vendor ID of the device. A control transfer would look like analogous.
 
 \section{Tearing down the communication}
 
@@ -240,7 +240,7 @@ BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
 };
 \end{lstlisting}
 
-To use this BroadcastReceiver register it in your Activity or Service with the corresponding IntentFilter like this:
+To use this BroadcastReceiver it has to be registered in an Activity or Service with the corresponding IntentFilter like this:
 
 \begin{lstlisting}[caption=Register the BroadcastReceiver with the desired actions, label=listing:attach_register]
 IntentFilter filter = new IntentFilter();
@@ -251,7 +251,7 @@ registerReceiver(mUsbReceiver, filter);
 
 \subsection{Via AndroidManifest.xml}
 
-If an application wants to get notified about the attachment of an USB device this can also be specified in the AndroidManifest.xml. This has the advantage that the application does has to be started before. In fact it is started when a desired USB device is connected. The user is then asked if he wants to start the application which can handle the attached device. The next benefit is that the step of requesting permission, described in \ref{section:request_permission}, is not required because the user already gave his consent by allowing the application to start.
+If an application wants to get notified about the attachment of an USB device this can also be specified in the AndroidManifest.xml. This has the advantage that the application does not have to be started before. In fact it is started when a desired USB device is connected. The user is then asked if he wants to start the application which can handle the attached device. The next benefit is that the step of requesting permission, described in \ref{section:request_permission}, is not required because the user already gave his consent by allowing the application to start.
 
 As a plus a device filter can be specified. It allows the application to get notified only if an appropriate device was attached. Following attributes can be specified\cite{android_usb_host}:
 
@@ -305,9 +305,9 @@ UsbDevice device = (UsbDevice) getIntent().getParcelableExtra(UsbManager.EXTRA_D
 
 \chapter{USB Mass storage class}
 
-Most USB devices of same type. To reduce development effort and allow OS designers offering generic drivers for a great range of different devices a lot of device types are standardized. These different types are called classes in USB. There are for example standardizations for printers, USB hubs, Audio or Video Devices, Human Interface devices and mass storage devices\cite{usb_classes}. The focus now, is on the mass storage class.
+Most USB devices are of same type. To reduce development effort and allow OS designers offering generic drivers for a great range of different devices, a lot of device types are standardized. These different types are called classes in USB. There are for example standardizations for printers, USB hubs, audio or video devices, human interface devices and mass storage devices\cite{usb_classes}. The focus now, is on the mass storage class.
 
-Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. Note that the mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device\cite{usb_ms_jan}. Reading and writing in this case does not necessarily mean reading or writing on the actual storage medium, but this is described later.
+Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. Note that the mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device\cite{usb_ms_jan}. Reading and writing in this case does not necessarily mean reading or writing on the actual storage medium, this is described later.
 
 There are two different types regarding the mass storage class. There is the bulk-only transport (BBB) mechanism which is the most popular one. All newer devices follow that standard. Then there is the Control/Bulk/Interrupt (CBI) standard which is no longer important, because the USB-IF recommends using the BBB approach\cite{usb_ms_jan}.
 
@@ -315,7 +315,7 @@ There are two different types regarding the mass storage class. There is the bul
 
 Unlike the name suggests there are two control requests in the BBB specification. The first one is a reset request to make the device becoming ready for the next command. The second is used to get the maximum LUN (Get Max LUN request). This requests tells about the number of standalone logical units the mass storage device supports\cite{usb_ms_jan}.
 
-Like said before the interface class has to be set to 08h for the mass storage class. The subclass of the interface descriptor can have different values and specifies the supported protocols used to read and write data to the mass storage. Table \ref{table:subclass} gives an overview of the different protocols.
+Like already mentioned before, the interface class has to be set to 08h for the mass storage class. The subclass of the interface descriptor can have different values and specifies the supported protocols used to read and write data to the mass storage. Table \ref{table:subclass} gives an overview of the different protocols.
 
 \begin{table}[ht]
 \caption{Overview subclass protocols \cite{usb_ms_jan}}
@@ -332,11 +332,11 @@ Like said before the interface class has to be set to 08h for the mass storage c
 \label{table:subclass}
 \end{table}
 
-For the purpose described in this thesis, the SCSI transparent command set is the most important one, which is explained in the following chapter. The RBC is not even implemented in Windows, but in the Linux kernel\cite{usb_ms_jan}. The other protocols refer to other types of storage media and not covered by this thesis.
+For the purpose described in this thesis, the SCSI transparent command set is the most important one, which is explained in the following chapter. The RBC is not even implemented in Windows, but in the Linux kernel\cite{usb_ms_jan}. The other protocols refer to other types of storage media and are not covered by this thesis.
 
 \section{SCSI transparent command set}
 
-Every SCSI command the host sends to the client is enclosed by a so called Command Block Wrapper (CBW). Sending this CBW is always the first thing when host and device exchange data. After transmitting the CBW, raw data can be transferred. The direction of that data can either be from the host to the device or vice versa. In this document, from now on, this phase is called the transport or transfer phase. Some commands do not need the data transfer phase. In the last step the client device sends a Command Status Wrapper (CSW) to the host to inform about any failures or success.
+Every SCSI command the host sends to the client is enclosed by a so called Command Block Wrapper (CBW). Sending this CBW is always the first thing when host and device exchange data. After transmitting the CBW, raw data can be transferred. The direction of that data can either be from the host to the device or vice versa. In this document, from now on, this phase is called the data, transport or transfer phase. Some commands do not need the data phase. In the last step the client device sends a Command Status Wrapper (CSW) to the host to inform about any failures or success.
 
 The CBW is always 31 bytes long including the enclosing SCSI command. The host sends it through the OUT endpoint to the device. Following table illustrates the CBW:
 
@@ -370,7 +370,7 @@ What data is transferred and how, is discussed in the sections about the differe
 \hline\hline
 \textbf{Field Name} & \textbf{Bits} & \textbf{Description}\\ \hline
 dCSWSignature & 32 & Fixed value of 53425355h to identify the CSW. \\ \hline
-dCSWTag & 32 & Value of dCBWTag from the sent CBW. \\ \hline
+dCSWTag & 32 & Value of dCBWTag from the CBW the device received. \\ \hline
 dCSWDataResidue & 32 & This indicates the number bytes in the transport phase the device has not yet processed. Should be 0 if all data has been processed. \\ \hline
 bCSWStatus & 8 & 0 if command successfully passed, 1 if there was an error and 2 on a phase error. \\ \hline
 \end{tabular}
@@ -390,7 +390,7 @@ The fields in the CBW and CSW are all serialized in little endian style.
 
 The Small Computer System Interface (SCSI) is a standard for communicating between computers and peripheral devices. It is most commonly used for hard disks and other storage devices, but it can also used for example for scanners\cite{wiki_scsi}. SCSI commands are used to get general information about the connected storage device, but also for reading and writing data from and to the device's storage. The USB mass storage class also uses this well established standard.
 
-The are a lot of different SCSI commands and not every device supports every command. To determine which commands a device supports, the host issues a SCSI INQUIRY command. Every device has to support this command and deliver a meaningful response to it. The device discloses, with the information included in the INQUIRY response, which commands are supported, i.e. which standardization it follows. In practice the most common used commands are these\cite{usb_ms_jan}:
+The are a lot of different SCSI commands and not every device supports every command. To determine which commands a device supports, the host issues a SCSI INQUIRY command. Every device has to support this command and deliver a meaningful response to it. The device discloses, with the information included in the INQUIRY response, which commands are supported, i.e. which standardization it follows. In practice the most commonly supported commands are\cite{usb_ms_jan}:
 
 \begin{itemize}
 \item INQUIRY
@@ -427,7 +427,7 @@ The most important fields in the INQUIRY command are the operation code and the 
 
 The Allocation Length field and the Control field are commonly used fields which occur in various SCSI commands\cite{scsi_seagate}.
 
-The response to the standard INQUIRY request shall contain 36 bytes\cite{scsi_seagate}. Bytes 5 to N consist of fields not discussed here, because they are less important or vendor specific information.
+The response to the standard INQUIRY request should contain at least 36 bytes\cite{scsi_seagate}. Nevertheless, it is up to the manufacturer of the device, how big the response is, because the response can include vendor specific information\cite{scsi_seagate}. Bytes 5 to N consist of fields not discussed here, because they are less important or vendor specific information.
 
 \begin{table}[ht]
 \caption{Standard INQUIRY data, compare to: \cite{usb_ms_jan, scsi_seagate}}
@@ -453,11 +453,11 @@ The Version field indicates which standard of the SPC (SCSI Primary commands) th
 
 The Response Data Format field must equal to two, because values lower than two are obsolete and values bigger than two are reserved\cite{scsi_seagate}.
 
-The additional length provides information about how many bytes are remaining in the response. The additional data is not important for us at the moment.
+The additional length provides information about how many bytes are remaining in the response. The additional data is not important at the moment.
 
 \subsection{TEST UNIT READY}
 
-This command tests if the storage device is ready to use. It does not have a transport phase. If the device is ready to use the CSW status is set to successful and if not to a status indicating failure. In the latter case the host should issue a SCSI REQUEST SENSE, to get information about what went wrong. When the device has removable media, this command can be used to check if a media is currently present\cite{usb_ms_jan}.
+This command tests if the storage device is ready to use. It does not have a transport phase. If the device is ready to use the CSW status is set to successful and if not to a status, indicating failure. In the latter case the host should issue a SCSI REQUEST SENSE, to get information about what went wrong. When the device has removable media, this command can be used to check if a media is currently present\cite{usb_ms_jan}.
 
 \begin{table}[ht]
 \caption{TEST UNIT READY command \cite{scsi_seagate}}
@@ -476,7 +476,7 @@ This command tests if the storage device is ready to use. It does not have a tra
 
 \subsection{READ CAPACITY}
 
-The READ CAPACITY command is used to determine the storage space of a device. The device tells the host the logical block address (LBA) of the last block and the size in bytes of a single block. The total number of blocks is the LBA of the last block address plus one. The direction of the transport phase is from the peripheral to the computer.
+The READ CAPACITY command is used to determine the storage space of a device. The device tells the host the logical block address (LBA) of the last block and the size in bytes of a single block. The total number of blocks is the LBA of the last block plus one. The direction of the transport phase is from the peripheral to the computer.
 
 \begin{table}[ht]
 \caption{READ CAPACITY(10) command \cite{scsi_seagate}}
@@ -512,7 +512,7 @@ The response transferred in the transport phase looks like this:
 
 \subsection{READ(10) and WRITE(10)}
 
-The READ(10) command requests the device to read the specified blocks from the storage and to transfer them to the host. The logical block address included in the command specifies the block where reading shall begin. The transfer length field holds the amount of contiguous blocks that shall be read. The device then transmits the requested data in the data transport phase. The device does not have to care about the actual data, it transfers it to the host just like it is saved on the storage. Table \ref{table:read_10} shows how the READ(10) command is constructed.
+The READ(10) command requests the device to read the specified blocks from the storage and to transfer them to the host. The logical block address included in the command specifies the block where reading shall begin. The transfer length field holds the amount of contiguous blocks that shall be read. The device then transmits the requested data in the data transport phase. The device does not have to care about the actual data, it transfers the data to the host, just like it is saved on the storage. Table \ref{table:read_10} shows how the READ(10) command is constructed.
 
 \begin{table}[ht]
 \caption{READ(10) command \cite{scsi_seagate}}
@@ -530,7 +530,7 @@ The READ(10) command requests the device to read the specified blocks from the s
 \label{table:read_10}
 \end{table}
 
-For us only the LBA and Transfer Length fields are important. The other fields shall remain zero. They are responsible for example to specify caching behavior or read protection\footnote{Way back, pen drives with a physical switch for write protection, were pretty common.}.
+Most important are the LBA and Transfer Length fields. The other fields shall remain zero. They are responsible, for example, to specify caching behavior or read protection\footnote{Way back, pen drives with a physical switch for write protection, were pretty common.}.
 
 The WRITE(10) command is formatted exactly like the READ(10) command except that the operation code is 2Ah and the RDPROTECT field is called WDPROTECT. The direction of the transport phase is, of course, the other way round, from computer to the device. The direction has to be specified correctly in the CBW!
 
@@ -563,7 +563,7 @@ The DESC bit describes if the fixed sense data or the descriptor format sense da
 
 The Allocation Length field indicates, like in the INQUIRY command, how many bytes the host has allocated for data to be received. The device does not send more data than the host has actually allocated. But that means that some information can be lost if the data requested is actually bigger than the allocated space.
 
-Table \ref{table:sense_data} shows the contents of the fixed sense data transferred from the device to the computer in the data transport phase. The size of the sense data is normally 252 bytes, with vendor specific information beginning at byte 18.
+Table \ref{table:sense_data} shows the contents of the fixed sense data transferred from the device to the computer in the data transport phase. The size of the sense data normally is 252 bytes, with vendor specific information beginning at byte 18.
 
 \begin{table}[ht]
 \caption{Standard INQUIRY data, compare to: \cite{usb_ms_jan, scsi_seagate}}
@@ -586,7 +586,7 @@ Table \ref{table:sense_data} shows the contents of the fixed sense data transfer
 \label{table:sense_data}
 \end{table}
 
-A detailed description of these fields can be found in the SCSI commands reference manual from Seagate\cite{scsi_seagate}.
+A detailed description of these fields can be found in the SCSI Commands Reference Manual from Seagate\cite{scsi_seagate}.
 
 \chapter{File systems}
 
