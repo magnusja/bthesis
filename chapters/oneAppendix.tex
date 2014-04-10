@@ -12,7 +12,7 @@ localhost:platform-tools mep$ ./adb tcpip 5555
 restarting in TCP mode port: 5555
 \end{lstlisting}
 
-This command forces the device to restart the debugging functionalities in Wifi mode at port 5555. The device can now be used to debug over Wifi. To do this, the devices' IP address has to be looked up in the Wifi settings\footnote{The computer and the Android device, obviouly, have to be in the same (Wifi-)network.}. With the IP address the connection can easily be established with another adb command:
+This command forces the device to restart the debugging functionalities in Wifi mode at port 5555. The device can now be used to debug over Wifi. To do this, the device's IP address has to be looked up in the Wifi settings\footnote{The computer and the Android device, obviouly, have to be in the same (Wifi-)network.}. With the IP address the connection can easily be established with another adb command:
 
  \begin{lstlisting}[caption=Connecting to the device over Wifi, label=listing:wifi_connect]
 localhost:platform-tools mep$ ./adb connect 192.168.2.108
@@ -25,9 +25,9 @@ connected to 192.168.2.108:5555
 
 The introduction says that Android currently does not support isochronous USB transfers, and gives a reference to the official Android developer documentation\cite{android_usb_constants}. But this does not seem to be appropriate for every device.
 
-Some devices like the Samsung Galaxy S3 support audio output via a connected USB Audio interface. Audio input seems to be unsupported. This feature is for example useful for USB headsets or docking stations which can play music. Unfortunately it is not part of the official Android. Nevertheless an application developer has no access to the isochronous transfers, they are hidden in the system and are only used to route the operating systems audio through the connected audio interface instead through the internal speaker.
+Some devices like the Samsung Galaxy S3 support audio output via a connected USB audio interface. Audio input seems to be unsupported. This feature is for example useful for USB headsets or docking stations which can play music. Unfortunately it is not part of the official Android. Nevertheless an application developer has no access to the isochronous transfers, they are hidden in the system and are only used to route the operating systems audio through the connected audio interface instead through the internal speaker.
 
-The company beyerdynamic offers a headphone with an integrated amplifier and an USB audio interface. It is connected to the Android device over USB. The headphone can be used with some Android devices only, which support digital audio data via USB, for example the Samsung Galaxy S3 or S4 or the HTC Butterfly\cite{beyerdynamic}.
+The company beyerdynamic offers a headphone with an integrated amplifier and an USB audio interface. It is connected to the Android device over USB. The headphone can be used with some Android devices only, which support digital audio data via USB, for example the Samsung Galaxy S3 or S4, or the HTC Butterfly\cite{beyerdynamic}.
 
 In fact, it seems that there are also people who get isochronous transfers to work on non rooted devices using native code and the system call \textit{ioctl}\cite{usb_audio_recorder, iso_stack}.
 

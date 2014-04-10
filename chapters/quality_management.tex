@@ -2,7 +2,7 @@
 
 \section{Overview}
 
-To ensure the quality of the Framework it has been tested on a wide range of different Android devices. The framework has also been tested with different USB pen drives and an external HDD, with external power source. Card readers and multiple devices connected via an USB hub have not been tested! The results of the tests are explained in the following sections.
+To ensure the quality of the Framework it has been tested on a wide range of different Android devices. The framework has also been tested with different USB pen drives and an external HDD, with external power source. Card readers have not been tested! The results of the tests are explained in the following sections.
 
 \subsection{Testing criteria}
 
@@ -10,11 +10,12 @@ On every device following aspects were tested, if they succeeded or not:
 
 \begin{itemize}
 \item Listing contents of directories
-\item Read and write to files
-\item Add directories and files
-\item Remove directories and files
-\item Move directories and files to other directories
-\item Write files bigger than the cluster size, to check if the dynamic growing of a chain works correctly
+\item Reading and writing to files
+\item Adding directories and files
+\item Removing directories and files
+\item Renaming directories and files
+\item Moving directories and files to other directories
+\item Writing files bigger than the cluster size, to check if the dynamic growing of a cluster chain works correctly
 \end{itemize}
 
 \section{Results}
@@ -45,9 +46,9 @@ Some devices support mounting USB mass storage devices without root rights nativ
 
 \subsection{Performance test}
 
-On Android versions lower 4.3 a specific method in the API is not available. It was later added with API level 18. To support older Android versions and to overcome this lack, the framework uses a different API call on lower Android versions. This workaround can influence on the performance. To examine the performance, the same file is copied from the mass storage to the internal storage on different Android versions, but on the same device. More information about the API difference, can be found in appendix \ref{chapter:api_diff}.
+On Android versions lower 4.3 a specific method in the API is not available. It was later added with API level 18. To support older Android versions and to overcome this lack, the framework uses a different API call on lower Android versions. This workaround can influence on the performance. To examine the performance, the same file is copied from the mass storage to the internal storage on different Android versions, but on an identical device. More information about the API difference, can be found in appendix \ref{chapter:api_diff}.
 
-The file copied was a video file with a size of 155,883,762 bytes, which is approximately 148.6 megabytes. The two devices were Google Nexus 7 tablets with Android versions 4.4.2 and 4.2.2. The same USB pen drive was always used for the tests. The file was copied five times on every device, table \ref{table:performance_test} shows the average copy time.
+The file copied was a video file with a size of 155,883,762 bytes, which is approximately 148.6 megabytes. The two devices were Google Nexus 7 tablets with Android versions 4.4.2 and 4.2.2. The same USB pen drive was used for the tests. The file was copied five times on every device, table \ref{table:performance_test} shows the average copy time.
 
 \begin{table}[ht]
 \caption{Performance test: Average time of copying same file five times on each device}
@@ -61,11 +62,11 @@ The file copied was a video file with a size of 155,883,762 bytes, which is appr
 \label{table:performance_test}
 \end{table}
 
-The performance results are pretty interesting because the device with the lower Android version is definitely faster than the one with the newer one. The difference is about ten seconds! The devices behave contrary as assumed. The reason for this is hard to find, maybe the USB Host stack changed not only in this functionality between these two versions. But this would imply that the newer Android version provides an inferior performance consulting the USB Host support. Another reason could be that installed applications and running services in the background have a huge impact on the performance. This is also an evidence for the difficulty of creating reasonable performance tests on two different devices although they both are of the same model!
+The performance results are pretty interesting because the device with the lower Android version is definitely faster than the one with the newer one. The difference is about ten seconds! The devices behave contrary as assumed. The reason for this is hard to find, maybe the USB host stack has changed greatly between these two versions. But this would imply that the newer Android version provides an inferior performance consulting the USB host support. Another reason could be that installed applications and running services in the background have a huge impact on the performance. This is also an evidence for the difficulty of creating reasonable performance tests on two different devices, although if they both are of the same model!
 
 \subsubsection{Additional performance test}
 
-Because of the surprising results another test on the device with Android 4.2.2 was run. The test is exactly as the test above, except that this time in the first test run the offset to write in the buffer is always zero, the second time it is forced to be none zero. That means that in the second run the workaround is enforced and the buffer has to be copied. Again, more information regarding the API difference, can be found in appendix \ref{chapter:api_diff}.
+Because of the surprising results another test on the device with Android 4.2.2 was run. The test is exactly as the test above, except that this time, in the first test run the offset to write in the buffer is always zero, the second time it is forced to be none zero. That means that in the second run the workaround is enforced and the buffer has to be copied. Again, more information regarding the API difference, can be found in appendix \ref{chapter:api_diff}.
 
 \begin{table}[ht]
 \caption{Performance test: Average time of copying same file five times on same device}
