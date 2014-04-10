@@ -3,28 +3,28 @@
 \subsubsection{Purpose}
 \label{implementation_purpose}
 
-The developed Android Framework for accessing USB mass storage devices shall meet determinate requirements:
+The developed Android framework for accessing USB mass storage devices shall meet determinate requirements:
 
 \begin{itemize}
 \item The mass storage device is accessible without root rights
 \item The API provides methods for enumerating through all connected mass storage devices and their partitions
 \item The API is easy to use and orientates towards the java.io.File API
-\item The Frameworks provides basic features like: Adding and removing directories and files, read and write access to files, moving directories and files located on the same volume
-\item The Framework shall be licensed under the Apache License, Version 2\footnote{\url{http://www.apache.org/licenses/LICENSE-2.0.html}}
+\item The framework provides basic features like: Adding and removing directories and files, read and write access to files, moving directories and files located on the same volume
+\item The framework shall be licensed under the Apache License, Version 2\footnote{\url{http://www.apache.org/licenses/LICENSE-2.0.html}}
 \end{itemize}
 
-The Framework shall at least support \textit{bulk-only transport} mass storage devices, which are using the SCSI transparent command set. It shall support devices which are formatted with the MBR partition table and the FAT32 file system. Despite the framework a simple example application shall also be developed to test and demonstrate the framework. The framework and the example application are publicly available at github\footnote{\url{https://github.com/mjdev/libaums}}.
+The framework shall at least support \textit{bulk-only transport} mass storage devices, which are using the SCSI transparent command set. It shall support devices which are formatted with the MBR partition table and the FAT32 file system. Despite the framework a simple example application shall be developed also to test and demonstrate the framework. The framework and the example application are publicly available at github\footnote{\url{https://github.com/mjdev/libaums}}.
 
-The following sections describe the relevant parts of the framework, but not every single detail. To get an insight how the whole thing work, the source code, which is well documented, may be examined directly.
+The following sections describe the relevant parts of the framework, but not every single detail. To get an insight how the whole thing works, the source code, which is well documented, may be examined directly.
 
 \subsubsection{Overview}
 \label{implementation_overview}
 
 This sections gives a brief overview over the whole framework, in the following chapters important parts of the framework are discussed in detail.
 
-The framework and the example application are written in Java. This is Android's main language for developing applications. The framework uses the standard Java API and the Android USB Host API to access USB devices. The example application uses the API of the developed framework and the standard Android API for creating user interfaces.
+The framework and the example application are written in Java. This is Android's main language for developing applications. The framework uses the standard Java API and the Android USB host API to access USB devices. The example application uses the API of the developed framework and the standard Android API for creating user interfaces.
 
-The framework can roughly be structured in three parts, Figure \ref{figure:package} shows a UML package diagram of the framework. The packages in the UML diagram correspond to the Java packages in the source code. Please note that the UML diagrams in this thesis are often simplified and do not cover all details.
+The framework can roughly be structured in three parts, figure \ref{figure:package} shows a UML package diagram of the framework. The packages in the UML diagram correspond to the Java packages in the source code. Please note that the UML diagrams in this thesis are often simplified and do not cover all details.
 
 \begin{figure}[h!]
 \caption{Package overview of the framework}
@@ -64,7 +64,7 @@ The class Partition represents a single volume on a mass storage device. It prov
 
 \subsubsection{FileSystem}
 
-The FileSystem interface provides a getter for the volume label, which returns exactly the same string like the getter in the class Partition. In fact the getter of the Partition class simply delegates the call to the FileSystem class. Another important method allows accessing the root directory of the file system and listing it contents.
+The FileSystem interface provides a getter for the volume label, which returns exactly the same string like the getter in the class Partition. In fact the getter of the Partition class simply delegates the call to the FileSystem class. Another important method allows accessing the root directory of the file system.
 
 \subsubsection{UsbFile}
 
@@ -98,7 +98,7 @@ private void setupDevice() {
     try {
         // before initializing the device, user must grant permission to communicate
         // this can be done with the UsbManager class and a BroadcastReceiver like shown in the
-        // section about the Android USB Host API
+        // section about the Android USB host API
         device.init();
 		
         // always use the first partition of the device
@@ -131,19 +131,19 @@ As mentioned previously, the driver package is responsible for handling the low 
 
 \subsubsection{BlockDeviceDriver}
 
-The BlockDeviceDriver interface is a general representation of a block device. It provides methods for reading and writing raw data to the device's media storage. It takes a device offset and a ByteBuffer as parameter to determine the offset of a read or write. The ByteBuffer indicates the length of the data which shall be read or written. If data shall be read, the data is read into the ByteBuffer, otherwise the data in the ByteBuffer is written to the device. It also offers a getter to determine the block size of the connected device.
+The BlockDeviceDriver interface is a general representation of a block device. It provides methods for reading and writing raw data from and to the device's media storage. It takes a device offset and a ByteBuffer as parameter to determine the offset of a read or write. The ByteBuffer indicates the length of the data which shall be read or written. If data shall be read, the data is read into the ByteBuffer, otherwise the data in the ByteBuffer is written to the device. It also offers a getter to determine the block size of the connected device.
 
 \subsubsection{BlockDeviceDriverFactory}
 
-This class is in charge to create a suitable block device driver for the connected mass storage device. Currently it always creates a ScsiBlockDevice. No other driver is currently supported. This class is intended to make further development and integration of other device drivers easier. There are also factory classes in the two other packages for creating suitable partition tables and file systems.
+This class is in charge of creating a suitable block device driver for the connected mass storage device. Currently it always creates a ScsiBlockDevice. No other driver is currently supported. This class is intended to make further development and integration of other device drivers easier. There are also factory classes in the two other packages for creating suitable partition tables and file systems.
 
 \subsubsection{ScsiBlockDevice}
 
-This is the representation of a block device driver which uses the SCSI transparent command set for communicating with devices. It transfers SCSI commands to the device, receives the desired responses from the device and interprets them.\\
+This is the representation of a block device driver which uses the SCSI transparent command set for communicating with devices. It transfers SCSI commands to the device, receives the desired responses from the device and interprets them.
 
 All SCSI commands a modeled in an own class which extend the CommandBlockWrapper. The CommandBlockWrapper is an abstract class which is always coupled with a SCSI command. As already mentioned, every SCSI command is enclosed by a CBW in the SCSI transparent command set protocol. The CBW offers a method to serialize itself to a ByteBuffer. This data can then be transmitted directly to the device. The serialized data include the direction of the command, the transfer length in the transport phase and the length of the SCSI command.
 
-Every SCSI command also offers the serialization to a ByteBuffer, it first calls the serialization method of the CBW class (super class) and then adds the own data to the ByteBuffer. Using this approach it is easy to wrap the CBW around the SCSI commands and new commands are straight forward to implement. 
+Every SCSI command also offers the serialization to a ByteBuffer, it first calls the serialization method of the CBW class (super class) and then adds the own data to the ByteBuffer. Using this approach it is easy to wrap the CBW around the SCSI commands and new commands are straightforward to implement. 
 
 In the UML diagram \ref{figure:driver_package} only the SCSI INQUIRY command is shown, but there are, of course, also classes for all other commands presented earlier.
 
@@ -189,21 +189,21 @@ The main classes to access the file system and the contents of it, are the previ
 
 \subsubsection{FatDirectory and FatFile}
 
-The FatDirectory and FatFile classes are responsible for the directory and file handling. They have two important attributes, the ClusterChain and the FatLfnDirectory entry. The FatLfnDirectory contains the long file name of the directory or file, the start cluster and if it is a file, the length of a file. It also contains information about the date and time the directory or file was created, last accessed and modified. 
+The FatDirectory and FatFile classes are responsible for the directory and file handling. They have two important attributes, the ClusterChain and the FatLfnDirectoryEntry. The FatLfnDirectoryEntry contains the long file name of the directory or file, the start cluster and if it is a file, the length of a file. It also contains information about the date and time the directory or file was created, last accessed and modified. 
 The ClusterChain is responsible for accessing the data located on the disk. A FatDirectory parses and writes the directory entries located in the chain, while the FatFile passes the functionality of reading or writing directly to the user via the UsbFile interface.
 
 \subsubsection{FatLfnDirectory and FatDirectoryEntry}
 
-The FatLfnDirectory provides methods to access a long file name entry. It encapsulates the long file name as well as the actual entry holding important information about the entry, such like the start cluster or file size, and the short name. The FatLfnDirectory entry mostly delegates the things which do not have to do with the long file name, such as the getting or setting the start cluster or file size, to the actual entry which is an attribute of the FatLfnDirectory instance. Both classes and the ShortName class provide convenience methods for parsing/reading and serializing the data. 
+The FatLfnDirectory provides methods to access a long file name entry. It encapsulates the long file name as well as the actual entry holding important information about the entry, such like the start cluster or file size, and the short name. The FatLfnDirectory entry mostly delegates the calls which do not have to do with the long file name, such as the getting or setting the start cluster or file size, to the actual entry which is an attribute of the FatLfnDirectory class. Both classes and the ShortName class provide convenience methods for parsing/reading and serializing the data. 
 
 \subsubsection{ClusterChain and FAT}
 
-The ClusterChain handles reading and writing from and to cluster chains giving a certain start cluster. It offers read and write methods to read and write the raw data from and to the desired clusters on the disk. It also has methods to set and get the length of the cluster chain. The setLength method, grows and shrinks the cluster chain as needed with the help of the FAT class. When writing to the chain, the cluster chain will also be dynamically increased if needed.
+The ClusterChain handles reading and writing from and to cluster chains given a certain start cluster. It offers read and write methods to read and write the raw data from and to the desired clusters on the disk. It also has methods to set and get the length of the cluster chain. The setLength() method, grows and shrinks the cluster chain as needed with the help of the FAT class. When writing to the chain, the cluster chain will also be dynamically increased if needed.
 
-The FAT is responsible for the cluster distribution in the File Allocation Table. The method getChain returns an array containing all clusters in the chain, including the start cluster at the first position, given a certain start cluster. The FAT class can also allocate new clusters or free unneeded clusters from a chain. When allocating or freeing clusters the FAT class also sets the new information regarding the free clusters and the last allocated cluster hint in the FSInfoStructure.
+The FAT is responsible for the cluster distribution in the File Allocation Table. The method getChain() returns an array containing all clusters in the chain, including the start cluster at the first position, given a certain start cluster. The FAT class can also allocate new clusters or free unneeded clusters from a chain. When allocating or freeing clusters the FAT class also sets the new information regarding the free clusters and the last allocated cluster hint in the FSInfoStructure.
 
 \subsubsection{Fat32FileSystem and Fat32BootSector}
 
-These two classes are not shown in the UML class diagram \ref{figure:fat_package}, because they do not play an important role in the interaction of the classes. But nevertheless, without them the whole system would not work. The Fat32FileSystem class is mainly responsible for initializing the file system meaning reading the boot sector, preparing the FAT and FSInfoStructure. It is also responsible for initializing the root directory and to hand it (via a getter) to the user, if desired.
+These two classes are not shown in the UML class diagram \ref{figure:fat_package}, because they do not play an important role in the interaction of the classes. But nevertheless, without them the whole system would not work. The Fat32FileSystem class is mainly responsible for initializing the file system, meaning reading the boot sector, preparing the FAT and FSInfoStructure. It is also responsible for initializing the root directory and to hand it (via a getter) to the user, if desired.
 
 The Fat32BootSector class reads the information of the boot sector of the FAT32 file system, and provides getter for important information, other classes need to access. This information includes but is not limited to the cluster and sector size and the start cluster of the root directory.
