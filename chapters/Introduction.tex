@@ -1,7 +1,7 @@
 \chapter{Introduction}
 \label{chapter:Introduction}
 
-Since Android 3.1, which was originally designed for tablet computers, a lot of Android devices come with USB host support (USB On the go). That means a normal Android tablet or phone can not only act as an USB client when connected to a computer. It can also act as an USB host for peripherals by powering the bus with the needed 5 Volt and changing into USB host mode which enables enumeration of connected USB devices\cite{android_usb_host}. Android currently supports interrupt, bulk and control transfers\footnote{Isochronous transfers are currently unsupported\cite{android_usb_constants}.}. That means almost every USB device can, theoretically, be used with an Android device\footnote{Webcams or audio devices mostly use isochronous transfers and can thus not be used at the moment.}. The Android host API allows to communicate with connected USB devices, i.e. a high level USB driver can be written in Java.
+Since Android 3.1, which was originally designed for tablet computers, a lot of Android devices come with USB host support (USB On the go). That means a normal Android tablet or phone can not only act as an USB client when connected to a computer. It can also act as an USB host for peripherals by powering the bus with the needed five Volt and changing into USB host mode which enables enumeration of connected USB devices\cite{android_usb_host}. Android currently supports interrupt, bulk and control transfers\footnote{Isochronous transfers are currently unsupported\cite{android_usb_constants}.}. That means almost every USB device can, theoretically, be used with an Android device\footnote{Webcams or audio devices mostly use isochronous transfers and can thus not be used at the moment.}. The Android host API allows to communicate with connected USB devices, i.e. a high level USB driver can be written in Java.
 
 Whereby the idea of connecting a USB mass storage device like USB flash drives or external HDDs is not far-fetched. Especially when looking at recent occurrences where a lot of devices lack a slot for SD-Cards and only offer a solid, mostly small, internal storage. Unfortunately the stock Android comes without support for USB storage devices. That means when connecting mass storage devices to an Android phone, nothing happens. The data cannot be accessed via a file manager or something similar. On rooted devices this is possible because the alternative Android ROMs often provide support for it. But with the Android USB Host API it should also be possible to access such devices without rooting the device and flashing an alternative ROM. The only thing needed is to implement the low level USB communication via e.g. bulk transfers and the abstraction of directories and files via a file system.
 
@@ -56,9 +56,9 @@ Finally there are the isochronous transfers. They offer a guaranteed bandwidth w
 
 \section{USB On the go}
 
-As already mentioned, in USB communication there is always a host (master) and a client (device). The host initiates the communication and acts as a master. This means that the client can only send data after being explicitly asked to do so by the host. The client is only able to signal that it requires attention. Then the host must react and ask for receiving data. When connecting a smartphone or tablet to the computer, the computer acts as the host and the smartphone acts as the client device. That means the smartphone normally acts as a client device and not as the USB host. The host is responsible for the power supply of the client device. In the desired constellation described in this thesis, however, it has obviously to act as a host. 
+As already mentioned, in USB communication there is always a host (master) and a client (device). The host initiates the communication and acts as a master. This means that the client can only send data after being explicitly asked to do so by the host. The client is only able to signal that it requires attention. Then the host must react and ask for receiving data. When connecting a smartphone or tablet to the computer, the computer acts as the host and the smartphone acts as the client device. That means the smartphone normally acts as a client device and not as the USB host. In the desired constellation described in this thesis, however, it has obviously to act as a host. 
 
-For that reason the USB-IF developed the USB On the go (USB OTG) feature in 2001 as part of the USB 2.0 specification\cite{wiki_usb}. This feature allows a USB device to act as a client or either a host depending on the present situation. To use the USB OTG mode, on a smartphone, a special USB OTG adapter is needed. This is necessary for two reasons. First for signaling that the smartphone should act as a host and not as usual as a client and second because most smartphones and tablets do not provide a normal USB port of type A. Instead they offer a mini (older devices) or micro port of type Mini-A or Micro-B\cite{wiki_usb_otg}. 
+For that reason the USB-IF developed the USB On the go (USB OTG) feature in 2001 as part of the USB 2.0 specification\cite{wiki_usb}. This feature allows a USB device to act as a client or either as a host depending on the present situation. To use the USB OTG mode, on a smartphone, a special USB OTG adapter is needed. This is necessary for two reasons. First for signaling that the smartphone should act as a host and not as usual as a client and second because most smartphones and tablets do not provide a normal USB port of type A. Instead they offer a mini (older devices) or micro port of type Mini-A or Micro-B\cite{wiki_usb_otg}. 
 
 \chapter{USB on Android}
 \label{chapter:usb_on_android}
@@ -83,7 +83,7 @@ UsbInterface & Represents an interface of a USB device, which defines a set of f
 UsbEndpoint & Represents an interface endpoint, which is a communication channel for this interface. An interface can have one or more endpoints, and usually has input and output endpoints for two-way communication with the device. \\ \hline
 UsbDeviceConnection & Represents a connection to the device, which transfers data on endpoints. This class allows sending data back and forth synchronously or asynchronously. \\ \hline
 UsbRequest & Represents an asynchronous request to communicate with a device through a UsbDeviceConnection. \\ \hline
-UsbConstants & Defines USB constants that correspond to definitions in linux/usb/ch9.h of the Linux kernel. \\ \hline
+UsbConstants & Defines USB constants that correspond to definitions in \textit{linux/usb/ch9.h} of the Linux kernel. \\ \hline
 \end{tabular}
 \label{table:host_api}
 \end{table}
@@ -132,7 +132,7 @@ for(UsbDevice device : usbManager.getDeviceList().values()) {
 }
 \end{lstlisting}
 
-While looping through the devices, it can easily be checked if any device fits the desired needs. UsbDevice and UsbInterface have methods to get the class, subclass and the protocol of the device, resp. the interface. The UsbEndpoint class has methods to get the type, the direction and other attributes of the corresponding endpoint. The UsbDevice also offers methods to get the vendor and product ID of the connected device.
+While looping through the devices, it can easily be checked if any device fits the desired needs. UsbDevice and UsbInterface offer methods to get the class, subclass and the protocol of the device, resp. the interface. The UsbEndpoint class has methods to get the type, the direction and other attributes of the corresponding endpoint. The UsbDevice also offers methods to get the vendor and product ID of the connected device.
 
 \section{Requesting permission for communication}
 \label{section:request_permission}
@@ -217,7 +217,7 @@ public void close() {
 
 \section{Listening to attach and detach events}
 
-Android does not only allow enumerating connected devices, an application can also register for attach and detach events of USB devices. The application then gets notified whenever a USB device is connected to or disconnected from the Android device. There are two different ways to do that. The first one is via a BroadcastReceiver, the second one via the AndroidManifest.xml file. The second method has the advantage that the application is notified even if it has not been started before.
+Android does not only allow enumerating connected devices, an application can also register for attach and detach events of USB devices. The application then gets notified whenever a USB device is connected to, or disconnected from the Android device. There are two different ways to do that. The first one is via a BroadcastReceiver, the second one via the AndroidManifest.xml file. The second method has the advantage that the application is notified even if it has not been started before.
 
 \subsection{Via BroadcastReceiver}
 
@@ -229,14 +229,14 @@ BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
       if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
             UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
             if (device != null) {
-                // call your method that sets up and initiates communication with the device
+                // call method that sets up and initiates communication with the device
             }
         }
 
       if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
             UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
             if (device != null) {
-                // call your method that cleans up and closes communication with the device
+                // call method that cleans up and closes communication with the device
             }
         }
     }
@@ -298,7 +298,7 @@ This resource file should be located at \textit{res/xml/device\_filter.xml} in t
 </manifest>
 \end{lstlisting}
 
-The intent filter for the action uses, again, the USB\_DEVICE\_ATTACHED string, like when using a BroadcastReceiver. This time no broadcast is sent, but an activity is started. The manifest also contains a \textit{uses-feature} entry, because not all Android devices guarantee to support the USB host feature\cite{android_usb_host}. The minimum sdk version is set to 12 here, because on lower API levels the USB API is not available. \\\\
+The intent filter for the action uses, again, the USB\_DEVICE\_ATTACHED string, like when using a BroadcastReceiver. This time no broadcast is sent, but an activity is started. The manifest also contains a \textit{uses-feature} entry, because not all Android devices guarantee to support the USB host feature\cite{android_usb_host}. The minimum sdk version is set to 12 here, because on lower API levels the USB host API is not available. \\\\
 After that the UsbDevice can be accessed anywhere within the Activity like this:
 
 \lstset{language=Java}
@@ -310,15 +310,15 @@ UsbDevice device = (UsbDevice) getIntent().getParcelableExtra(UsbManager.EXTRA_D
 
 Most USB devices are of same type. To reduce development effort and allow OS designers offering generic drivers for a great range of different devices, a lot of device types are standardized. These different types are called classes in USB. There are for example standardizations for printers, USB hubs, audio or video devices, human interface devices and mass storage devices\cite{usb_classes}. The focus in the following, is on the mass storage class.
 
-Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. Note that the mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device\cite{usb_ms_jan}. Reading and writing in this case does not necessarily mean reading or writing on the actual storage medium, this is described later.
+Every mass storage device has at least one interface descriptor with the class code 08h, which stands for the mass storage class. The mass storage class is not defined in the device descriptor! The USB interface has exactly two endpoint descriptors. One IN endpoint to read from the device and one OUT endpoint to write to the device\cite{usb_ms_jan}. Reading and writing in this case does not necessarily mean reading or writing on the actual storage medium, this is described later.
 
-There are two different types regarding the mass storage class. There is the bulk-only transport (BBB) mechanism which is the most popular one. All newer devices follow that standard. Then there is the Control/Bulk/Interrupt (CBI) standard which is no longer important, because the USB-IF recommends using the BBB approach\cite{usb_ms_jan}.
+There are two different types regarding the mass storage class. There is the bulk-only transport (BBB) mechanism which is the most common one. All newer devices follow that standard. Then there is the Control/Bulk/Interrupt (CBI) standard which is no longer important, because the USB-IF recommends using the BBB approach\cite{usb_ms_jan}.
 
 \section{Bulk-only Transport}
 
-Unlike the name suggests there are two control requests in the BBB specification. The first one is a reset request to prepare the device for the next command. The second is used to get the maximum LUN (Get Max LUN request). This requests informs about the number of standalone logical units the mass storage device supports\cite{usb_ms_jan}.
+Unlike the name suggests there are two control requests in the BBB specification. The first one is a reset request to prepare the device for the next command. The second is used to get the maximum LUN (Get Max LUN request). This request informs about the number of standalone logical units the mass storage device supports\cite{usb_ms_jan}.
 
-As mentioned, the interface class has to be set to 08h for the mass storage class. The subclass of the interface descriptor can have different values and specifies the supported protocols used to read and write data to the mass storage. Table \ref{table:subclass} gives an overview of the different protocols.
+As mentioned, the interface class has to be set to 08h for the mass storage class. The subclass of the interface descriptor can have different values and specifies the supported protocols used to read and write data from and to the mass storage. Table \ref{table:subclass} gives an overview of the different protocols.
 
 \begin{table}[ht]
 \caption{Overview subclass protocols \cite{usb_ms_jan}}
@@ -374,7 +374,7 @@ What data is transferred and how, is discussed in the sections about the differe
 \textbf{Field Name} & \textbf{Bits} & \textbf{Description}\\ \hline
 dCSWSignature & 32 & Fixed value of 53425355h to identify the CSW. \\ \hline
 dCSWTag & 32 & Value of dCBWTag from the CBW the device received. \\ \hline
-dCSWDataResidue & 32 & This indicates the number bytes in the transport phase the device has not yet processed. Should be 0 if all data has been processed. \\ \hline
+dCSWDataResidue & 32 & This indicates the number of bytes in the transport phase the device has not yet processed. Should be 0 if all data has been processed. \\ \hline
 bCSWStatus & 8 & 0 if command successfully passed, 1 if there was an error and 2 on a phase error. \\ \hline
 \end{tabular}
 \label{table:csw}
@@ -426,7 +426,7 @@ As already mentioned the INQUIRY command is used to get general information abou
 \label{table:inquiry}
 \end{table}
 
-The most important fields in the INQUIRY command are the operation code and the allocation length. The allocation length tells the storage device how many bytes the host has allocated for the INQUIRY response. The device then replies with an answer not larger than the allocation length. The allocation field should be at least five (bytes). The EVPD\footnote{Enable Vital Product Data} and the page code are used to get more information about the vital product data. If the EVPD bit is set to one, the device should return the part of the vital product data specified in the field page code. If the EVPD bit is set to zero only the standard INQUIRY data shall be returned\cite{scsi_seagate}. This thesis describes only the latter case.
+The most important fields in the INQUIRY command are the operation code and the allocation length. The allocation length tells the storage device how many bytes the host has allocated for the INQUIRY response. The device then replies with an answer not larger than the allocation length. The Allocation Length field should be at least five (bytes). The EVPD\footnote{Enable Vital Product Data} and the page code are used to get more information about the vital product data. If the EVPD bit is set to one, the device should return the part of the vital product data specified in the field page code. If the EVPD bit is set to zero only the standard INQUIRY data shall be returned\cite{scsi_seagate}. This thesis describes only the latter case.
 
 The Allocation Length field and the Control field are commonly used fields which occur in various SCSI commands\cite{scsi_seagate}.
 
@@ -452,7 +452,7 @@ The peripheral device type shall always be zero. This indicates that a periphera
 
 The RMB bit indicates if the device is removable or not. Zero indicates a non removable device and one a removable device. USB flash drives are removable devices, but they have a fixed media unlike card readers. But Microsoft suggests that flash drives declare they have removable media, and thus some flash drives do this\cite{usb_ms_jan}.
 
-The Version field indicates which standard of the SPC (SCSI Primary commands) the device follows. If the value is zero the device does not comply to any standard. If the value is three or four, the device complies to the SPC or SPC-2 standard\cite{usb_ms_jan, scsi_seagate}.
+The Version field indicates which standard of the SPC (SCSI Primary Commands) the device follows. If the value is zero the device does not comply to any standard. If the value is three or four, the device complies to the SPC or SPC-2 standard\cite{usb_ms_jan, scsi_seagate}.
 
 The Response Data Format field must equal to two, because values lower than two are obsolete and values bigger than two are reserved\cite{scsi_seagate}.
 
@@ -497,7 +497,7 @@ The READ CAPACITY command is used to determine the storage space of a device. Th
 \label{table:read_capacity}
 \end{table}
 
-If the PMI (partial media indicator) bit is set to zero, the logical block address also must be set to zero. The device then returns information of the last logical block. If the PMI bit is set to one, the Seagate manual on SCSI commands says: "A PMI bit set to one specifies that the device server return information on the last logical block after that specified in the LOGICAL BLOCK ADDRESS field before a substantial vendor specific delay in data transfer may be encountered."\cite{scsi_seagate}
+If the PMI (partial media indicator) bit is set to zero, the logical block address must also be set to zero. The device then returns information of the last logical block. If the PMI bit is set to one, the Seagate manual on SCSI commands says: "A PMI bit set to one specifies that the device server return information on the last logical block after that specified in the LOGICAL BLOCK ADDRESS field before a substantial vendor specific delay in data transfer may be encountered."\cite{scsi_seagate}
 
 The response transferred in the transport phase looks like this:
 
@@ -515,7 +515,7 @@ The response transferred in the transport phase looks like this:
 
 \subsection{READ(10) and WRITE(10)}
 
-The READ(10) command requests the device to read the specified blocks from the storage and to transfer them to the host. The logical block address included in the command specifies the block where reading shall begin. The transfer length field holds the amount of contiguous blocks that shall be read. The device then transmits the requested data in the data transport phase. The device does not have to care about the actual data, it transfers the data to the host, just like it is saved on the storage. Table \ref{table:read_10} shows how the READ(10) command is constructed.
+The READ(10) command requests the device to read the specified blocks from the storage and to transfer them to the host. The logical block address included in the command specifies the block where reading shall begin. The Transfer Length field holds the amount of contiguous blocks that shall be read. The device then transmits the requested data in the data transport phase. The device does not have to care about the actual data, it transfers the data to the host, just like it is saved on the storage. Table \ref{table:read_10} shows how the READ(10) command is constructed.
 
 \begin{table}[ht]
 \caption{READ(10) command \cite{scsi_seagate}}
@@ -539,7 +539,7 @@ The WRITE(10) command is formatted exactly like the READ(10) command except that
 
 \subsubsection{Logical Block Address}
 
-Every mass storage device is structured in blocks. These blocks have a defined size. The size of each block can be determined by issuing a READ CAPACITY(10) command. The blocks are numbered consecutively beginning from zero to the amount of blocks minus one. This number is called logical block address, short LBA. With the LBA every block can easily be addressed and accessed. The READ(10) and WRITE(10) SCSI commands use this method of addressing for reading and writing data to the storage medium. The transfer length specifies how many blocks, including the block at the LBA, shall be transferred. That means reading or writing begins with a block defined through the LBA with as many directly consecutive blocks as desired.
+Every mass storage device is structured in blocks. These blocks have a defined size. The size of each block can be determined by issuing a READ CAPACITY(10) command. The blocks are numbered consecutively beginning from zero to the amount of blocks minus one. This number is called logical block address, short LBA. With the LBA every block can easily be addressed and accessed. The READ(10) and WRITE(10) SCSI commands use this method of addressing for reading and writing data from and to the storage medium. The transfer length specifies how many blocks, including the block at the LBA, shall be transferred. That means reading or writing begins with a block defined through the LBA with as many directly consecutive blocks as desired.
 
 \subsection{REQUEST SENSE}
 
@@ -609,7 +609,7 @@ Unlike directories, files do not help structuring the contents, but hold the act
 
 Today there are many different file systems. Most commonly used file systems are FAT32 and NTFS from Windows background, ext3, ext4 and btrfs from the Linux/Unix background and HFS+, also called Mac OS Extended, developed by Apple for their OS X operating system. All listed file systems, except FAT32, use binary trees or something similar to structure the contents of the directories.
 
-On USB mass storage devices the most popular file systems are FAT32 and NTFS, because obviously most people use the Windows operating system. The NTFS specification is not published by Microsoft. Thus it is very hard to support NTFS on other systems, nevertheless there is NTFS support in the Linux kernel. The FAT32 specification is publicly available and can be downloaded from the Microsoft website\footnote{\url{http://msdn.microsoft.com/en-us/windows/hardware/gg463080.aspx}}. Because of the lack of support for unix like file systems on Windows, the Linux and OS X file systems are only used by users who do not need to exchange data with Windows machines. Therefore the FAT32 file system, which has an open specification and is the mostly used file system on sd cards and pen drives, is described in the following sections in detail.
+On USB mass storage devices the most popular file systems are FAT32 and NTFS, because obviously most people use the Windows operating system. The NTFS specification is not published by Microsoft. Thus it is very hard to support NTFS on other systems, nevertheless there is NTFS support in the Linux kernel. The FAT32 specification is publicly available and can be downloaded from the Microsoft website\footnote{\url{http://msdn.microsoft.com/en-us/windows/hardware/gg463080.aspx}}. Because of the lack of support for unix like file systems on Windows, the Linux and OS X file systems are only used by users who do not need to exchange data with Windows machines. Therefore the FAT32 file system, which has an open specification and is the mostly used file system on SD-cards and pen drives, is described in the following sections in detail.
 
 \subsection{Partition table}
 
@@ -641,7 +641,7 @@ Since there is only place for four partition table entries, a disk formatted wit
 \label{table:mbr_entry}
 \end{table}
 
-The important fields of a partition table entry in the MBR are located at byte four, eight and twelve. The fields for CHS addressing are pretty much obsolete. It is a former way to address the blocks on a block device through cylinder, head and sector information. Today only the logical block addressing mechanism is important.
+The important fields of a partition table entry in the MBR are located at byte four, eight and twelve. The fields for CHS addressing are pretty much obsolete. It is a former way to address the blocks on a block device through cylinder, head and sector information. Today only the logical block addressing mechanism is important\cite{wiki_lba}.
 
 The partition table entry holds the first logical block address of the partition. This is where the partition starts, and the content of the file system of the desired partition begins. The entry also holds the total number of blocks the partition occupies, but in most cases this value is also stored in the file system of the partition, and most software uses this value instead\cite{usb_ms_jan}.
 
@@ -657,7 +657,7 @@ But it is pretty hard to determine if the device has a partition table or if the
 
 \section{The FAT32 file system}
 
-The FAT32 file system was developed and published in 1996 with Windows 95. FAT means File Allocation Table, which is an important part of every FAT32 system, but more on that later. There are two ancestors of the FAT32 file system, FAT12 and FAT16. They vary in the size of an entry in the FAT. The entries of the FAT in a FAT32 file system have the size of 32 bit. Due to the size of 32 bit, FAT32 has one big disadvantage. The file size is limited to 4 GiB - 1 Byte, which is sometimes unpleasant in everyday situations\cite{wiki_fat}.
+The FAT32 file system was developed and published in 1996 with Windows 95. FAT means File Allocation Table, which is an important part of every FAT32 system, but more on that later. There are two ancestors of the FAT32 file system, FAT12 and FAT16. They vary in the size of an entry in the FAT and other fields. The entries of the FAT in a FAT32 file system have the size of 28 bit. Due to the 32 bit length field of a file, the file size is limited to 4 GiB - 1 Byte, which is sometimes unpleasant in everyday situations\cite{wiki_fat}.
 
 \subsection{General layout}
 
@@ -685,7 +685,7 @@ The reserved region includes the boot sector and the FS Information sector. The 
 
 \subsubsection{File Allocation Table}
 
-The contents of the FAT32 file system is structured in so called clusters. A cluster has a specific size which is specified in the boot sector. A cluster is the smallest unit which can be allocated in the file system. That means if a file for example has only one bytes of contents but the cluster size is 4096 bytes the file needs 4096 bytes of space. The unneeded 4095 bytes are padded and wasted because they cannot be used for other files.
+The contents of the FAT32 file system is structured in so called clusters. A cluster has a specific size which is specified in the boot sector. A cluster is the smallest unit which can be allocated in the file system. That means if a file for example only has one byte of content but the cluster size is 4096 bytes the file needs 4096 bytes of space. The unneeded 4095 bytes are padded and wasted because they cannot be used for other files.
 
 Every FAT32 file system has a definite amount of clusters which can be used for storing contents. The FAT gives an overview of which clusters are used and which are free. The FAT is a dynamically linked list. Giving a start cluster the FAT can be followed up to the end, identified by an end of chain mark. The resulting cluster chain helps locating the contents on the disk.
 
@@ -711,7 +711,7 @@ BPB\_RsvdSecCnt & 14 & 2 & Number of reserved sectors at the beginning of the vo
 BPB\_NumFATs & 16 & 1 & The number of FATs in this file system. The FATs can be mirrored to provide redundancy to ensure that there is always a valid FAT which is not corrupt due to bad sectors or something else. This value is typically 2, meaning there are two different FATs holding the same information. \\ \hline
 BPB\_TotSec32 & 32 & 4 & The total amount of sectors in the file system. \\ \hline
 BPB\_FATSz32 & 36 & 4 & The number of sectors one FAT occupies. \\ \hline
-BPB\_ExtFlags & 40 & 2 & Bit 0-3: Zero based number of the valid FAT if mirroring of FATs is disabled. Bit 7: Indicates if FATs are mirrored or not. Zero for mirroring, one if only one FAT is valid. Valid FAT can be determined with Bit 0-3. Other bits are reserved. \\ \hline
+BPB\_ExtFlags & 40 & 2 & Bit 0-3: Zero based number of the valid FAT if mirroring of FATs is disabled. Bit 7: Indicates if FATs are mirrored or not. 0 for mirroring, 1 if only one FAT is valid. Valid FAT can be determined with Bit 0-3. Other bits are reserved. \\ \hline
 BPB\_RootClus & 44 & 4 & The start cluster of the root directory. This is typically cluster 2. \\ \hline
 BPB\_FSInfo & 48 & 2 & The sector number of the FS Information Sector in the reserved region. \\ \hline
 BPB\_BkBootSec & 50 & 2 & If this value is non zero, it indicates the sector number of the backup boot sector within the reserved region. This value is typically 6. \\ \hline
@@ -749,11 +749,11 @@ FSI\_TrailSig & 508 & 4 & Fixed value of AA550000h to identify the FSInfo Sector
 
 As already mentioned, the File Allocation Table (FAT) is a dynamically linked list with a fixed size. It starts directly after the reserved region. The size of the FAT is stored in the boot sector of the FAT32 file system. The FAT is very important, because it holds the information about which clusters are used and which one not. Moreover it defines which different clusters combined define a file resp. directory. Thus the FAT can be mirrored, for backup reasons. The total count of FATs is located in the boot sector. The next FAT directly begins after the current FAT. Normally on a FAT32 file system there are two FATs holding the same information.
 
-Every entry of the FAT is 32 bit, with the lower 28 bit representing the cluster number. The other four bits are unused. The first two entries in the FAT do not store any information about clusters, the data area begins with cluster 2.
+Every entry of the FAT is 32 bit, with the lower 28 bit representing the cluster number. The other four bits are unused. The first two entries in the FAT do not store any information about clusters, the data area begins with cluster 2\cite{usb_ms_jan}.
 
 \subsubsection{Cluster chains}
 
-A series of clusters is called a cluster chain. Every directory or file consists of a specific cluster chain defining the location of the contents on the disk. To follow such a chain, a start cluster is needed. The start cluster of the root directory for example is stored in the boot sector. A FAT32 file system then seeks into the FAT where the start cluster is located. In bytes this is 4 * start cluster (Every entry is 32 bit = 4 byte). The value stored at this location is the next cluster in the chain. This is repeated until the value stored is an "end of chain mark". This determines the end of a cluster chain. A value above FFFFFF7h is an end of chain mark. A value of zero indicates that the cluster is free and a value of one that the cluster is reserved. A value of FFFFFF7h stands for a bad cluster.
+A series of clusters is called a cluster chain. Every directory or file consists of a specific cluster chain defining the location of the content on the disk. To follow such a chain, a start cluster is needed. The start cluster of the root directory for example is stored in the boot sector. A FAT32 file system then seeks into the FAT where the start cluster is located. In bytes this is 4 * start cluster (Every entry is 32 bit = 4 byte) from the beginning of the FAT. The value stored at this location is the next cluster in the chain. This is repeated until the value stored is an "end of chain mark". This determines the end of a cluster chain. A value above FFFFFF7h is an end of chain mark. A value of zero indicates that the cluster is free and a value of one that the cluster is reserved. A value of FFFFFF7h stands for a bad cluster.
 
 \begin{figure}[h!]
 \caption{Simplified illustration of a FAT and following cluster chains}
@@ -768,7 +768,7 @@ After evaluating the cluster chain, the file system driver can access the conten
 Directories and files are located in the data area of a FAT32 file system. The exact location of the contents and which clusters correspond to the directory or file must be determined by a cluster chain from the FAT. A directory consists of multiple 32 byte entries describing the contents of the directory. The contents can either be other directories, so called subdirectories or files. The root directory is always present on a FAT32 file system. The start cluster of the root directory is stored in the boot sector.
 
 Files do not have a defined structure, unlike directories. The raw data the file consists of is located in the different clusters, just as it is. The only thing defined, is the order, which can be determined from the FAT.
-\\\\
+
 Figure \ref{figure:data_area} shows a simplified example of the data area. The root directory starts at cluster 2 and ends with cluster 6. There is also a file in the data area, consisting of cluster 3 and 5. In cluster 4 a sub directory is located consisting of one cluster only. The whole data area is separated into clusters with a certain size, containing either chunks of data of a directory or a file.
 
 \begin{figure}[h!]
@@ -780,7 +780,7 @@ Figure \ref{figure:data_area} shows a simplified example of the data area. The r
 
 \subsubsection{Fat Directory Entry}
 
-The following table describes the structure of a Fat Directory entry. Every entry, normally, represents either another (sub)directory or file. The root directory can also have a special entry not only describing files and other directories but an optional volume label which gives the volume a name. Such a volume label could also be specified in the boot sector, but it is more commonly to specify it in the root directory. Another special entry is the long file name entry, which is described later.
+The following table describes the structure of a Fat Directory entry. Every entry, normally, represents either another (sub)directory or file. The root directory can also have a special entry not only describing files and other directories but an optional volume label which gives the volume a name. Such a volume label could also be specified in the boot sector, but it is more common to specify it in the root directory. Another special entry is the long file name entry, which is described later.
 
 \begin{table}[!ht]
 \caption{Fat Directory Entry, compare to: \cite{usb_ms_jan, fatgen103}}
@@ -795,10 +795,10 @@ DIR\_CrtTimeTenth & 13 & 1 & Timestamp which holds the tenth of a second when th
 DIR\_CrtTime & 14 & 2 & The time the file was created. \\ \hline
 DIR\_CrtDate & 16 & 2 & The date the file was created. \\ \hline
 DIR\_LstAccDate & 18 & 2 & The date the file was last accessed (read or write). \\ \hline
-DIR\_FstClusHI & 20 & 2 & The higher two bytes of the entries start cluster. Unused if the entry is not a file or directory. \\ \hline
+DIR\_FstClusHI & 20 & 2 & The higher two bytes of the entry's start cluster. Unused if the entry is not a file or directory. \\ \hline
 DIR\_WrtTime & 22 & 2 & The time the file last modified (write). \\ \hline
 DIR\_WrtDate & 24 & 2 & The date the file last modified (write). \\ \hline
-DIR\_FstClusLO & 26 & 2 & The lower two bytes of the entries start cluster. Unused if the entry is not a file or directory. \\ \hline
+DIR\_FstClusLO & 26 & 2 & The lower two bytes of the entry's start cluster. Unused if the entry is not a file or directory. \\ \hline
 DIR\_FileSize & 26 & 4 & The length of a file in bytes. Unused if the entry is not a file. \\ \hline
 \end{tabular}
 \label{table:fat_dir_entry}
@@ -812,7 +812,7 @@ Every entry has a short name which is a human readable name. The name consists o
 \item Each character is only eight bit (no unicode support)
 \item It has to begin with a letter or a number
 \item Every character is stored upper case
-\item Other valid characters are: \$ \% $'$ -  \_ @ $\sim$ $`$ ! ( ) { } \^{} \# \&
+\item The only allowed special characters are: \$ \% $'$ -  \_ @ $\sim$ $`$ ! ( ) { } \^{} \# \&
 \end{itemize}
 
 If the first byte of the short name equals to E5h, then this directory entry is free and has been deleted. If the first byte equals to 00h, then this entry is also free, but there are not any following entries, looping through the entries can thus be stopped. In the first case it can happen that there are valid entries that follow. If the first byte equals to 05h, then the actual value of the first byte shall be E5h, which is a KANJI lead byte used in Japan. This is a workaround for avoiding the entry to be accidentally treated as free (deleted)\cite{fatgen103}.
@@ -872,9 +872,9 @@ In the directory entry there are many date and time fields, the following descri
 
 \subsection{Subdirectories}
 
-Every subdirectory has two special entries. The dot (.) and the dotdot (..) entry. The dot entry points the the current subdirectory itself. It has the same values as the entry for the subdirectory in the parent directory, i.e. same date and time fields, same start cluster, etc. The dotdot entry points to the parent directory, but the date and time fields remain like in the subdirectory. The start cluster of the dotdot entry is the same as for the parent directory except if the parent directory is the root directory, then it is set to zero.
+Every subdirectory has two special entries. The dot (.) and the dotdot (..) entry. The dot entry points the the current subdirectory itself. It has the same values as the entry for the subdirectory in the parent directory, i.e. same date and time fields, same start cluster, etc. The dotdot entry points to the parent directory, but the date and time fields remain like in the subdirectory. The start cluster of the dotdot entry is the same as for the parent directory except if the parent directory is the root directory, then it is set to zero\cite{fatgen103}.
 
-These two entries are the only exceptions where a short name starts with periods. The dot and dotdot entry must not have preceding long file name entries!
+These two entries are the only exceptions where a short name starts with periods. The dot and dotdot entry must not have preceding long file name entries\cite{fatgen103}!
 
 The root directory does not have these two special entries, this rule applies for subdirectories only\cite{fatgen103}!
 
@@ -910,7 +910,7 @@ The long file name entry should be terminated with a null character (0h) if ther
 
 \subsubsection{Checksum}
 
-Every long file name entry needs a checksum of the corresponding short name. These checksum is calculated as follows:
+Every long file name entry needs a checksum of the corresponding short name. This checksum is calculated as follows:
 
 \lstset{language=c}
 \begin{lstlisting}[caption=Calculation of short name checksum in C \cite{fatgen103}, label=listing:fat_checksum]
@@ -938,4 +938,4 @@ unsigned char ChkSum (unsigned char *pFcbName)
 
 \subsubsection{Generating short names}
 
-Every directory entry which has preceding long file name entries nevertheless needs a valid short name. There exist different algorithms for generating valid short names given a long file name. The algorithms mainly consist of removing illegal characters and convert them to underscores (\_), removing spaces and periods, truncating the long file name to eight and the extension if available to three characters. All characters must be converted to upper case and a tilde ($\sim$) must added if the file name was truncated, contained illegal characters or an entry with the same short name already exists in the directory. The official FAT specification\cite{fatgen103} and the book from Jan Axelson\cite{usb_ms_jan} describe two different approaches to generate valid 8.3 short names.
+Every directory entry which has preceding long file name entries nevertheless needs a valid short name. There exist different algorithms for generating valid short names given a long file name. These algorithms mainly consist of removing illegal characters and convert them to underscores (\_), removing spaces and periods, truncating the long file name to eight and the extension, if available, to three characters. All characters must be converted to upper case and a tilde ($\sim$) must be added if the file name was truncated, contained illegal characters or an entry with the same short name already exists in the directory. The official FAT specification\cite{fatgen103} and the book from Jan Axelson\cite{usb_ms_jan} describe two different approaches to generate valid 8.3 short names.
