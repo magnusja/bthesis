@@ -168,14 +168,14 @@ private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
 
 The next step is to register this BroadcastReceiver that it can actually receive broadcasts from the system. This normally happens in the onCreate method of an Activity via the method registerReceiver which takes the BroadcastReceiver (mUsbReceiver) and the IntentFilter as parameter. The IntentFilter uses the ACTION\_USB\_PERMISSION string, declared in Listing \ref{listing:permission_broadcast}, to filter undesired actions.
 
-\begin{lstlisting}[caption=Register the BroadcastReceiver \cite{android_usb_host}, label=listing:register_broadcast]
+\begin{lstlisting}[caption=Registering the BroadcastReceiver \cite{android_usb_host}, label=listing:register_broadcast]
 IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
 registerReceiver(mUsbReceiver, filter);
 \end{lstlisting}
 
 The last step consists of requesting the permission using the UsbManager:
 
-\begin{lstlisting}[caption=Request permission \cite{android_usb_host}, label=listing:request_permission]
+\begin{lstlisting}[caption=Requesting permission \cite{android_usb_host}, label=listing:request_permission]
 UsbDevice device;
 ...
 mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
@@ -221,7 +221,7 @@ Android does not only allow enumerating connected devices, an application can al
 
 \subsection{Via BroadcastReceiver}
 
-\begin{lstlisting}[caption=Attach and detach notification of USB devices via BroadcastReceivers, label=listing:attach_broadcast]
+\begin{lstlisting}[caption=Attach and detach notification of USB devices via a BroadcastReceiver, label=listing:attach_broadcast]
 BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction(); 
@@ -245,7 +245,7 @@ BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
 
 To use this BroadcastReceiver it has to be registered in an Activity or Service with the corresponding IntentFilter like this:
 
-\begin{lstlisting}[caption=Register the BroadcastReceiver with the desired actions, label=listing:attach_register]
+\begin{lstlisting}[caption=Registering the BroadcastReceiver with the desired actions, label=listing:attach_register]
 IntentFilter filter = new IntentFilter();
 filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
 filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
@@ -569,7 +569,7 @@ The Allocation Length field indicates, like in the INQUIRY command, how many byt
 Table \ref{table:sense_data} shows the contents of the fixed sense data transferred from the device to the computer in the data transport phase. The size of the sense data normally is 252 bytes, with vendor specific information beginning at byte 18.
 
 \begin{table}[ht]
-\caption{Standard INQUIRY data, compare to: \cite{usb_ms_jan, scsi_seagate}}
+\caption{Fixed SENSE data, compare to: \cite{usb_ms_jan, scsi_seagate}}
 \centering
 \begin{tabular}{|l|l|}
 \hline\hline
@@ -624,7 +624,7 @@ The MBR occupies 512 bytes at the beginning (LBA zero) of the medium. The first 
 Since there is only place for four partition table entries, a disk formatted with the MBR normally could only have up to four different partitions, called primary partitions. If more partitions are required, extended partitions may be used. An extended partition has its own partition table enclosed by an extended boot record (EBR). The partition table entry in the MBR then points to the EBR which is followed by the extended partition. An EBR can contain one additional entry for another extended partition, thus there is practically no limit to the number of extended partitions\cite{usb_ms_jan}.
 
 \begin{table}[ht]
-\caption{Partition Table Entry in the MBR, compare to: \cite{usb_ms_jan}}
+\caption{Partition table entry in the MBR, compare to: \cite{usb_ms_jan}}
 \centering
 \begin{tabular}{|l|l|l|}
 \hline\hline
